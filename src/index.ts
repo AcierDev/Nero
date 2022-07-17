@@ -7,6 +7,4 @@ const client = new SapphireClient({
     loadMessageCommandListeners: true,
 });
 
-console.log(process.env.TOKEN);
-
 client.login(process.env.TOKEN);
