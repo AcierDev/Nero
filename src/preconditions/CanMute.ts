@@ -30,9 +30,18 @@ export class CanMute extends AllFlowsPrecondition {
         }
     }
 
+    /**
+     * Check if a GuildMember has access to mute user's in their guild
+     */
     private async canMute(member: GuildMember) {
         return member.permissions.has(Permissions.FLAGS.MUTE_MEMBERS)
             ? this.ok()
             : this.error({ message: `You must have the permission: \`Mute Members\`` })
+    }
+}
+
+declare module '@sapphire/framework' {
+    interface Preconditions {
+        canMute: never;
     }
 }

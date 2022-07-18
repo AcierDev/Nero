@@ -1,5 +1,5 @@
-import { ChatInputCommand, Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
-import { Permissions } from "discord.js";
+import {ChatInputCommand, Command, CommandOptionsRunTypeEnum} from "@sapphire/framework";
+import {Permissions} from "discord.js";
 
 export class WarnCommand extends Command {
     //Construct
@@ -8,7 +8,8 @@ export class WarnCommand extends Command {
             ...options,
             name: 'warn',
             description: "issue a user a warning",
-            runIn: CommandOptionsRunTypeEnum.GuildAny
+            runIn: CommandOptionsRunTypeEnum.GuildAny,
+            preconditions: ['canMute']
         });
     }
 
@@ -31,6 +32,13 @@ export class WarnCommand extends Command {
                         .setName('reason')
                         .setDescription('Record a reason for this warning')
                         .setRequired(true)
+                )
+
+                .addBooleanOption(option =>
+                    option
+                        .setName('silent')
+                        .setDescription('Whether to show this moderation action in chat')
+                        .setRequired(false)
                 )
 
                 .setDefaultMemberPermissions(Permissions.FLAGS.MUTE_MEMBERS)
