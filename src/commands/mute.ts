@@ -1,18 +1,20 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum} from "@sapphire/framework";
 import {Permissions} from "discord.js";
-import {Warning} from "../moderation/Warning";
+import {Mute} from "../moderation/Mute";
+import humanize from 'humanize-duration';
 
-export class WarnCommand extends Command
+export class MuteCommand extends Command
 {
     //Construct
     public constructor(context: Command.Context, options: Command.Options)
     {
         super(context, {
             ...options,
-            name: 'warn',
-            description: "issue a user a warning",
+            name: 'mute',
+            description: "time out a user",
             runIn: CommandOptionsRunTypeEnum.GuildAny,
-            preconditions: ['CanMute']
+            preconditions: ['CanMute'],
+            requiredClientPermissions: ['MUTE_MEMBERS'],
         });
     }
 
@@ -21,20 +23,27 @@ export class WarnCommand extends Command
     {
         registry.registerChatInputCommand(builder =>
             builder
-                .setName('warn')
-                .setDescription('issue a user a warning')
+                .setName('mute')
+                .setDescription('time out a user')
 
                 .addUserOption(option =>
                     option
                         .setName('user')
-                        .setDescription('Choose a user to warn')
+                        .setDescription('Choose a user to time out')
                         .setRequired(true)
                 )
 
                 .addStringOption(option =>
                     option
                         .setName('reason')
-                        .setDescription('Record a reason for this warning')
+                        .setDescription('Record a reason for this mute')
+                        .setRequired(true)
+                )
+
+                .addStringOption(option =>
+                    option
+                        .setName('duration')
+                        .setDescription('Duration for this mute \'Examples: \`10m\` \`1h\` \`45m\` \`24h\` \'')
                         .setRequired(true)
                 )
 
@@ -52,13 +61,14 @@ export class WarnCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
-        const warning = await Warning.interactionFactory(interaction);
+        const mute = await Mute.interactionFactory(interaction);
 
-        const success: boolean = await warning.execute();
+        const success: boolean = await mute.execute();
 
         if (success)
         {
-            await interaction.reply({content: `@${warning.target.tag} warned`, ephemeral: warning.silent});
+            await interaction.reply({content: `@${mute.target.tag} muted for ${humanize(mute.duration)}`, ephemeral: mute.silent
+            });
         } else
         {
             await interaction.reply({content: 'Error: command did not execute successfully', ephemeral: true})

@@ -1,10 +1,8 @@
-import { SapphireClient } from "@sapphire/framework";
+import {SapphireClient} from "@sapphire/framework";
+import {ClientWrapper} from "./ClientWrapper";
+
 require('dotenv').config();
 
-const client = new SapphireClient({
-    intents: ['GUILDS', 'GUILD_MESSAGES'],
-    partials: ['MESSAGE', 'REACTION', 'CHANNEL', 'GUILD_MEMBER'],
-    loadMessageCommandListeners: true,
-});
+new ClientWrapper();
 
-client.login(process.env.TOKEN);
+ClientWrapper.get().login(process.env.TOKEN);
