@@ -17,7 +17,7 @@ export class Unmute extends AbstractModerationAction
         // Get the command arguments
         const target = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
-        const silent = interaction.options.getBoolean('silent', false);
+        const silent = interaction.options.getBoolean('silent', false) ?? false;
 
         // Construct and return an UnMute instance
         return new Unmute(
@@ -71,7 +71,7 @@ export class Unmute extends AbstractModerationAction
 
     recordToDb(): Promise<boolean>
     {
-        return Promise.resolve(false);
+        return Promise.resolve(true);
     }
 
 }

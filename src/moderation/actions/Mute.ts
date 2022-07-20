@@ -50,7 +50,6 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
                 content: `${durationString} could not be converted into a valid duration`,
                 ephemeral: true
             });
-
             // Exit
             return;
         }
@@ -95,9 +94,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
         try
         {
             // Try to find the target user in the guild
-            console.log(await this.guild.members.fetch())
-            const members = await this.guild.members.fetch({force: true})
-            const member = members.find(member => member.id == this.target.id);
+            const member = (await this.guild.members.fetch()).find(member => member.id == this.target.id);
 
             //TODO handle error case where member is not found in the server
 

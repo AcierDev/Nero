@@ -7,7 +7,15 @@ export class CanMute extends AllFlowsPrecondition
     // Chat command
     public override async messageRun(message: Message)
     {
-        return this.canMute(message.member);
+        // Ensure they are a GuildMember, so we can check their permissions
+        if (isGuildMember(message.member))
+        {
+            // Check their permissions
+            return this.canMute(message.member);
+        } else
+        {
+            return this.error({message: `Error: You cannot run this command outside a server`})
+        }
     }
 
     // Slash command
@@ -20,7 +28,7 @@ export class CanMute extends AllFlowsPrecondition
             return this.canMute(interaction.member);
         } else
         {
-            return this.error({message: `Error: You do not seem to be running this command from inside a discord server`})
+            return this.error({message: `Error: You cannot run this command outside a server`})
         }
     }
 
@@ -34,7 +42,7 @@ export class CanMute extends AllFlowsPrecondition
             return this.canMute(interaction.member);
         } else
         {
-            return this.error({message: `Error: You do not seem to be running this command from inside a discord server`})
+            return this.error({message: `Error: You cannot run this command outside a server`})
         }
     }
 

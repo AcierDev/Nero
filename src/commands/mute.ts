@@ -1,7 +1,8 @@
-import {ChatInputCommand, Command, CommandOptionsRunTypeEnum} from "@sapphire/framework";
+import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Mute} from "../moderation/actions/Mute";
 import humanize from 'humanize-duration';
+import {PermissionUtil} from "../util/PermissionUtil";
 
 export class MuteCommand extends Command
 {
@@ -65,8 +66,20 @@ export class MuteCommand extends Command
     {
         // Generate a Mute object from this the interaction
         const mute = await Mute.interactionFactory(interaction);
-
-        // Perform the Mute
+        // If for some reason this interaction cannot be turned into a proper mute (for example command parameters that cannot be parsed into something meaningful)
+        // Then the factory will have already responded with an error message, and we should just exit
+        if (! mute) return;
+        // Perform critical permission checks
+        const error = await PermissionUtil.checkPermissions(mute, {ensureTargetIsInGuild: true, checkTargetIsAboveIssuer: true, checkTargetIsAboveClient: true})
+        // Handle a permission error, if any exists
+        if (err)
+        {
+            // Send the user the error message
+            await interaction.reply({content: error.message, ephemeral: true});
+            // Exit
+            return;
+        }
+        // Execute the Mute
         const success: boolean = await mute.execute();
 
         if (success)

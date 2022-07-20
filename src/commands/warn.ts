@@ -1,6 +1,7 @@
-import {ChatInputCommand, Command, CommandOptionsRunTypeEnum} from "@sapphire/framework";
+import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Warning} from "../moderation/actions/Warning";
+import {PermissionUtil} from "../util/PermissionUtil";
 
 export class WarnCommand extends Command
 {
@@ -52,8 +53,19 @@ export class WarnCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+        // Create a Warning instance from this interaction
         const warning = await Warning.interactionFactory(interaction);
-
+        // Perform critical permission checks
+        const error = await PermissionUtil.checkPermissions(warning, {checkTargetIsAboveIssuer: true})
+        // Handle a permission error, if any exists
+        if (err)
+        {
+            // Send the user the error message
+            await interaction.reply({content: error.message, ephemeral: true});
+            // Exit
+            return;
+        }
+        // Execute the warning
         const success: boolean = await warning.execute();
 
         if (success)

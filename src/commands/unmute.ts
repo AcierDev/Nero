@@ -1,6 +1,7 @@
-import {ChatInputCommand, Command, CommandOptionsRunTypeEnum} from "@sapphire/framework";
+import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Unmute} from "../moderation/actions/Unmute";
+import {PermissionUtil} from "../util/PermissionUtil";
 
 export class UnmuteCommand extends Command
 {
@@ -56,11 +57,23 @@ export class UnmuteCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
-        // Generate a Unmute object from the interaction
+        // Create an unmute instance from the interaction
         const unmute = Unmute.interactionFactory(interaction);
-
-        // Perform the Unmute
-        const success: boolean = await unmute.perform();
+        // If for some reason this interaction cannot be turned into a proper unmute (for example command parameters that cannot be parsed into something meaningful)
+        // Then the factory will have already responded with an error message, and we should just exit
+        if (! unmute) return;
+        // Perform critical permission checks
+        const error = await PermissionUtil.checkPermissions(unmute, {ensureTargetIsInGuild: true, checkTargetIsAboveIssuer: true, checkTargetIsAboveClient: true})
+        // Handle a permission error, if any exists
+        if (err)
+        {
+            // Send the user the error message
+            await interaction.reply({content: error.message, ephemeral: true});
+            // Exit
+            return;
+        }
+        // execute the Unmute
+        const success: boolean = await unmute.execute();
 
         if (success)
         {

@@ -115,7 +115,10 @@ export abstract class AbstractModerationAction
      */
     public async execute(): Promise<boolean>
     {
-        return await this.recordToDb() && await this.sendActionToPlayer() && this.perform();
+        // Program execution will short circuit. The moderation action will not be performed if it is not first recorded to the db
+        // Users will not be informed of the moderation action if it is not recorded to the db and executed in the guild.
+        // TODO separate these out so we can send proper error messages, instead of a generic "command failed" without any indication of which method failed to execute
+        return await this.recordToDb() && await this.perform() && await this.sendActionToPlayer();
     }
 
     /**
