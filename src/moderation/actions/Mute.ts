@@ -1,8 +1,8 @@
-import {AbstractModerationAction} from "./abstract/AbstractModerationAction";
+import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import humanize from 'humanize-duration';
-import {DurationBasedAction} from "./interfaces/DurationBasedAction";
-import {TimeUtil} from "../util/TimeUtil";
+import {DurationBasedAction} from "../interfaces/DurationBasedAction";
+import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
 
 export class Mute extends AbstractModerationAction implements DurationBasedAction
@@ -27,7 +27,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     // STATIC FACTORIES
     // Static methods to return an instance of the class
     // because this shitty language doesn't have constructor overloading
-    // -------------------------------------------- //
+    // --------------------------------------------//
 
     /**
      * Generate a Mute instance from an interaction
@@ -44,7 +44,16 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
 
         // If the parse failed
         if (!duration)
-            await interaction.reply({content: `${durationString} could not be converted into a valid duration`, ephemeral: true});
+        {
+            // Send error message
+            await interaction.reply({
+                content: `${durationString} could not be converted into a valid duration`,
+                ephemeral: true
+            });
+
+            // Exit
+            return;
+        }
 
         // On successful parsing of the duration
         return new Mute(
@@ -86,7 +95,11 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
         try
         {
             // Try to find the target user in the guild
-            const member = (await this.guild.members.fetch()).find(member => member.id == this.target.id);
+            console.log(await this.guild.members.fetch())
+            const members = await this.guild.members.fetch({force: true})
+            const member = members.find(member => member.id == this.target.id);
+
+            //TODO handle error case where member is not found in the server
 
             // Attempt to time out the user via the api
             await member.timeout(this.duration, this.reason);

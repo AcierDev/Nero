@@ -2,12 +2,12 @@ import {AllFlowsPrecondition} from "@sapphire/framework";
 import {CommandInteraction, ContextMenuInteraction, GuildMember, Message, Permissions} from "discord.js";
 import {isGuildMember} from '@sapphire/discord.js-utilities';
 
-export class CanMute extends AllFlowsPrecondition
+export class CanKick extends AllFlowsPrecondition
 {
     // Chat command
     public override async messageRun(message: Message)
     {
-        return this.canMute(message.member);
+        return this.canKick(message.member);
     }
 
     // Slash command
@@ -17,7 +17,7 @@ export class CanMute extends AllFlowsPrecondition
         if (isGuildMember(interaction.member))
         {
             // Check permissions
-            return this.canMute(interaction.member);
+            return this.canKick(interaction.member);
         } else
         {
             return this.error({message: `Error: You do not seem to be running this command from inside a discord server`})
@@ -31,7 +31,7 @@ export class CanMute extends AllFlowsPrecondition
         if (isGuildMember(interaction.member))
         {
             // Check permissions
-            return this.canMute(interaction.member);
+            return this.canKick(interaction.member);
         } else
         {
             return this.error({message: `Error: You do not seem to be running this command from inside a discord server`})
@@ -41,11 +41,11 @@ export class CanMute extends AllFlowsPrecondition
     /**
      * Check if a GuildMember has access to mute user's in their guild
      */
-    private async canMute(member: GuildMember)
+    private async canKick(member: GuildMember)
     {
-        return member.permissions.has(Permissions.FLAGS.MUTE_MEMBERS)
+        return member.permissions.has(Permissions.FLAGS.KICK_MEMBERS)
             ? this.ok()
-            : this.error({message: `You are missing the permission: \`MUTE_MEMBERS\``})
+            : this.error({message: `You are missing the permission: \`KICK_MEMBERS\``})
     }
 }
 
@@ -53,6 +53,6 @@ declare module '@sapphire/framework'
 {
     interface Preconditions
     {
-        CanMute: never;
+        CanKick: never;
     }
 }
