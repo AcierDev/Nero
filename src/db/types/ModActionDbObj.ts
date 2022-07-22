@@ -1,9 +1,12 @@
-export class ModActionDbObj
+import {NamedClass} from "../../moderation/interfaces/NamedClass";
+
+export class ModActionDbObj implements NamedClass
 {
 
     // -------------------------------------------- //
     // FIELDS
     // -------------------------------------------- //
+    _clazzName = "DurationModActionDbObj";
 
     // mame of the moderation action
     private _name: string;
@@ -41,6 +44,10 @@ export class ModActionDbObj
     // -------------------------------------------- //
     // GETTERS AND SETTERS
     // -------------------------------------------- //
+    get clazzName(): string
+    {
+        return this._clazzName;
+    }
     get name(): string
     {
         return this._name;

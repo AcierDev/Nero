@@ -1,13 +1,15 @@
 import {ModActionDbObj} from "./ModActionDbObj";
 import {DurationBasedAction} from "../../moderation/interfaces/DurationBasedAction";
+import {NamedClass} from "../../moderation/interfaces/NamedClass";
 
-export class DurationModActionDbObj extends ModActionDbObj implements DurationBasedAction
+export class DurationModActionDbObj extends ModActionDbObj implements DurationBasedAction, NamedClass
 {
     // -------------------------------------------- //
     // FIELDS
     // -------------------------------------------- //
 
      _duration: number;
+     _clazzName = "DurationModActionDbObj";
 
     // -------------------------------------------- //
     // CONSTRUCTOR
@@ -30,6 +32,10 @@ export class DurationModActionDbObj extends ModActionDbObj implements DurationBa
     set duration(value: number)
     {
         this._duration = value;
+    }
+    get clazzName(): string
+    {
+        return this._clazzName;
     }
 
     // -------------------------------------------- //
