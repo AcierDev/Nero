@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WarnCommand = void 0;
 const framework_1 = require("@sapphire/framework");
 const discord_js_1 = require("discord.js");
-const Warning_1 = require("../moderation/Warning");
+const Warning_1 = require("../moderation/actions/Warning");
+const PermissionUtil_1 = require("../util/PermissionUtil");
 class WarnCommand extends framework_1.Command {
     //Construct
     constructor(context, options) {
@@ -12,7 +13,6 @@ class WarnCommand extends framework_1.Command {
             name: 'warn',
             description: "issue a user a warning",
             runIn: "GUILD_ANY" /* GuildAny */,
-            preconditions: ['canMute']
         });
     }
     // Register slash command
@@ -36,11 +36,25 @@ class WarnCommand extends framework_1.Command {
     }
     // Run via slash command
     async chatInputRun(interaction) {
-        // get the command arguments
-        const user = interaction.options.getUser('user', true);
-        const reason = interaction.options.getString('reason', true);
-        const silent = interaction.options.getBoolean('silent', true);
-        await new Warning_1.Warning(user, reason, interaction.user, Date.now(), interaction.guild, interaction.channel, silent).run();
+        // Create a Warning instance from this interaction
+        const warning = await Warning_1.Warning.interactionFactory(interaction);
+        // Perform critical permission checks
+        const error = await PermissionUtil_1.PermissionUtil.checkPermissions(warning, { checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS" });
+        // Handle a permission error, if any exists
+        if (error) {
+            // Send the user the error message
+            await interaction.reply({ content: error.message, ephemeral: true });
+            // Exit
+            return;
+        }
+        // Execute the warning
+        const success = await warning.execute();
+        if (success) {
+            await interaction.reply({ content: `@${warning.target.tag} warned`, ephemeral: warning.silent });
+        }
+        else {
+            await interaction.reply({ content: 'Error: command did not execute successfully', ephemeral: true });
+        }
     }
 }
 exports.WarnCommand = WarnCommand;

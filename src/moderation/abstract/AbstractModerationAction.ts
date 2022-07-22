@@ -1,5 +1,7 @@
 import {MessageEmbed, User, TextBasedChannel, Guild} from "discord.js";
-import {ClientWrapper} from "../../ClientWrapper";
+import {ModActionDbObj} from "../../db/types/ModActionDbObj";
+import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
+import {DbManager} from "../../db/DbManager";
 
 export abstract class AbstractModerationAction
 {
@@ -21,6 +23,7 @@ export abstract class AbstractModerationAction
     private _channel: TextBasedChannel;
     // Whether to display the moderation action in chat
     private _silent: boolean;
+    //TODO comment field
 
     // -------------------------------------------- //
     // CONSTRUCTORS
@@ -38,7 +41,9 @@ export abstract class AbstractModerationAction
         this._silent = silent;
     }
 
-    //TODO constructor for id's
+    // -------------------------------------------- //
+    // GETTERS AND SETTERS
+    // -------------------------------------------- //
 
     get target(): User
     {
@@ -110,6 +115,10 @@ export abstract class AbstractModerationAction
         this._silent = value;
     }
 
+    // -------------------------------------------- //
+    // METHODS
+    // -------------------------------------------- //
+
     /**
      * Execute the moderation action
      */
@@ -118,13 +127,14 @@ export abstract class AbstractModerationAction
         // Program execution will short circuit. The moderation action will not be performed if it is not first recorded to the db
         // Users will not be informed of the moderation action if it is not recorded to the db and executed in the guild.
         // TODO separate these out so we can send proper error messages, instead of a generic "command failed" without any indication of which method failed to execute
-        return await this.recordToDb() && await this.perform() && await this.sendActionToPlayer();
+        //FIXME I really fucking hate that this will fail if we can't message the user
+        return await this.recordToDb() && await this.perform() && await this.messageTarget();
     }
 
     /**
      * Inform the target user about this moderation action
      */
-    private async sendActionToPlayer(): Promise<boolean>
+    public async messageTarget(): Promise<boolean>
     {
         try
         {
@@ -144,19 +154,28 @@ export abstract class AbstractModerationAction
         }
     }
 
+    /**
+     * Record the moderation action to the database
+     */
+    protected async recordToDb(): Promise<boolean>
+    {
+        await DbManager.storeAction(this.toDbObj());
+        return true;
+    };
+
     // -------------------------------------------- //
     // ABSTRACT
     // -------------------------------------------- //
 
     /**
+     * Generate a database object from this action
+     */
+    abstract toDbObj(): ModActionDbObj | DurationModActionDbObj
+
+    /**
      * Generate a discord embed providing the details of this moderation action
      */
     abstract genEmbed(): MessageEmbed;
-
-    /**
-     * Record the moderation action to the database
-     */
-    abstract recordToDb(): Promise<boolean>;
 
     /**
      * Perform moderation actions in the guild (if applicable)

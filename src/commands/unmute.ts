@@ -15,7 +15,6 @@ export class UnmuteCommand extends Command
             name: 'unmute',
             description: "Remove a user's time out",
             runIn: CommandOptionsRunTypeEnum.GuildAny,
-            preconditions: ['CanMute'],
             requiredClientPermissions: ['MUTE_MEMBERS']
         });
     }
@@ -63,9 +62,9 @@ export class UnmuteCommand extends Command
         // Then the factory will have already responded with an error message, and we should just exit
         if (! unmute) return;
         // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(unmute, {ensureTargetIsInGuild: true, checkTargetIsAboveIssuer: true, checkTargetIsAboveClient: true})
+        const error = await PermissionUtil.checkPermissions(unmute, {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"})
         // Handle a permission error, if any exists
-        if (err)
+        if (error)
         {
             // Send the user the error message
             await interaction.reply({content: error.message, ephemeral: true});

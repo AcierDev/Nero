@@ -1,16 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CanMute = void 0;
+exports.CanBan = void 0;
 const framework_1 = require("@sapphire/framework");
 const discord_js_1 = require("discord.js");
 const discord_js_utilities_1 = require("@sapphire/discord.js-utilities");
-class CanMute extends framework_1.AllFlowsPrecondition {
+class CanBan extends framework_1.AllFlowsPrecondition {
     // Chat command
     async messageRun(message) {
         // Ensure they are a GuildMember, so we can check their permissions
         if ((0, discord_js_utilities_1.isGuildMember)(message.member)) {
             // Check their permissions
-            return this.canMute(message.member);
+            return this.canBan(message.member);
         }
         else {
             return this.error({ message: `Error: You cannot run this command outside a server` });
@@ -21,7 +21,7 @@ class CanMute extends framework_1.AllFlowsPrecondition {
         // Ensure they are a GuildMember, so we can check their permissions
         if ((0, discord_js_utilities_1.isGuildMember)(interaction.member)) {
             // Check permissions
-            return this.canMute(interaction.member);
+            return this.canBan(interaction.member);
         }
         else {
             return this.error({ message: `Error: You cannot run this command outside a server` });
@@ -32,19 +32,19 @@ class CanMute extends framework_1.AllFlowsPrecondition {
         // Ensure they are a GuildMember, so we can check their permissions
         if ((0, discord_js_utilities_1.isGuildMember)(interaction.member)) {
             // Check permissions
-            return this.canMute(interaction.member);
+            return this.canBan(interaction.member);
         }
         else {
             return this.error({ message: `Error: You cannot run this command outside a server` });
         }
     }
     /**
-     * Check if a GuildMember has access to mute users in their guild
+     * Check if a GuildMember has access to ban users in their guild
      */
-    async canMute(member) {
-        return member.permissions.has(discord_js_1.Permissions.FLAGS.MUTE_MEMBERS)
+    async canBan(member) {
+        return member.permissions.has(discord_js_1.Permissions.FLAGS.BAN_MEMBERS)
             ? this.ok()
-            : this.error({ message: `You are missing the permission: \`MUTE_MEMBERS\`` });
+            : this.error({ message: `You are missing the permission: \`BAN_MEMBERS\`` });
     }
 }
-exports.CanMute = CanMute;
+exports.CanBan = CanBan;

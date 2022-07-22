@@ -13,7 +13,6 @@ export class WarnCommand extends Command
             name: 'warn',
             description: "issue a user a warning",
             runIn: CommandOptionsRunTypeEnum.GuildAny,
-            preconditions: ['CanMute']
         });
     }
 
@@ -56,9 +55,9 @@ export class WarnCommand extends Command
         // Create a Warning instance from this interaction
         const warning = await Warning.interactionFactory(interaction);
         // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(warning, {checkTargetIsAboveIssuer: true})
+        const error = await PermissionUtil.checkPermissions(warning, {checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS"})
         // Handle a permission error, if any exists
-        if (err)
+        if (error)
         {
             // Send the user the error message
             await interaction.reply({content: error.message, ephemeral: true});

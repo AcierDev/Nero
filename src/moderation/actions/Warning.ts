@@ -1,6 +1,7 @@
 import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
 import {MessageEmbed} from "discord.js";
 import {Command} from "@sapphire/framework";
+import {ModActionDbObj} from "../../db/types/ModActionDbObj";
 
 export class Warning extends AbstractModerationAction
 {
@@ -42,7 +43,7 @@ export class Warning extends AbstractModerationAction
             .setThumbnail(this.guild.iconURL({format: 'png'}))
             .setDescription(`${this.target} you have received a **warning** from **${this.guild.name}**`)
             .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
-            .setFooter({text: `${this.guild.name} staff team`, iconURL: this.guild.iconURL()})
+            .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
         //TODO include guild invite link
     }
 
@@ -51,10 +52,21 @@ export class Warning extends AbstractModerationAction
         return Promise.resolve(true);
     }
 
-    override async recordToDb(): Promise<boolean>
+    /**
+     * Generate a db object
+     */
+    public toDbObj(): ModActionDbObj
     {
-        //TODO
-        return Promise.resolve(true);
+        return new ModActionDbObj(
+            "Warning",
+            this.reason,
+            this.issuer.id,
+            this.target.id,
+            this.guild.id,
+            this.channel.id,
+            this.silent,
+            this.timestamp,
+        )
     }
 
 }

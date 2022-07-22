@@ -9,7 +9,7 @@ class ClientWrapper {
             return ClientWrapper.instance;
         else {
             ClientWrapper.instance = new framework_1.SapphireClient({
-                intents: ['GUILDS', 'GUILD_MESSAGES'],
+                intents: ['GUILDS', 'GUILD_MESSAGES', 'GUILD_MEMBERS'],
                 partials: ['MESSAGE', 'REACTION', 'CHANNEL', 'GUILD_MEMBER'],
                 loadMessageCommandListeners: true,
             });

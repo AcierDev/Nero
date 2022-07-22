@@ -10,7 +10,7 @@ export class PingCommand extends Command
         super(context, {
             ...options,
             name: 'ping',
-            description: "get the bot's ping and API latency"
+            description: "get the bots ping and API latency"
         });
     }
 
@@ -20,7 +20,7 @@ export class PingCommand extends Command
         registry.registerChatInputCommand(builder =>
             builder
                 .setName('ping')
-                .setDescription("get the bot's ping and API latency")
+                .setDescription("get the bots ping and API latency")
         )
     }
 

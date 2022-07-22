@@ -1,12 +1,12 @@
 import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
-import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
-import humanize from 'humanize-duration';
 import {DurationBasedAction} from "../interfaces/DurationBasedAction";
-import {TimeUtil} from "../../util/TimeUtil";
+import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
+import {TimeUtil} from "../../util/TimeUtil";
+import humanize from 'humanize-duration';
 import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
 
-export class Mute extends AbstractModerationAction implements DurationBasedAction
+export class Ban extends AbstractModerationAction implements DurationBasedAction
 {
     // -------------------------------------------- //
     // ADDITIONAL FIELDS
@@ -33,12 +33,12 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     /**
      * Generate a Mute instance from an interaction
      */
-    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Mute>
+    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Ban>
     {
         // get the command arguments
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
-        const durationString = interaction.options.getString('duration', true);
+        const durationString = interaction.options.getString('duration', false) ?? null;
         const silent = interaction.options.getBoolean('silent') ?? false;
 
         // Attempt to parse what the user entered for the duration into a number
@@ -57,7 +57,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
         }
 
         // On successful parsing of the duration
-        return new Mute(
+        return new Ban(
             user,
             reason,
             interaction.user,
@@ -89,21 +89,21 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     /**
      * Generate a discord embed providing the details of this moderation action
      */
-    override genEmbed(): MessageEmbed
+    public genEmbed(): MessageEmbed
     {
         return new MessageEmbed()
-            .setTitle('Your were muted!')
+            .setTitle('You were banned!')
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL())
-            .setDescription(`${this.target} you have been **muted** from **${this.guild.name}** for **${humanize(this._duration)}**`)
+            .setDescription(`${this.target} you have been **banned** from **${this.guild.name}** ${this._duration ? `for **${humanize(this._duration)}**` : ''}`)
             .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
             .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
     }
 
     /**
-     * Perform the mute in the guild
+     * Perform moderation actions in the guild
      */
-    override async perform(): Promise<boolean>
+    public async perform(): Promise<boolean>
     {
         try
         {
@@ -113,7 +113,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
             if (!member)
                 return false;
             // Attempt to time out the user via the api
-            await member.timeout(this._duration, this.reason);
+            await member.ban({reason: this.reason, days: 1});
             // Indicate success
             return true;
         } catch (e)
@@ -125,7 +125,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     }
 
     /**
-     * Get the duration remaining for this mute
+     * Get the duration remaining for this ban
      */
     public getDurationRemaining(): number
     {
@@ -138,7 +138,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     public toDbObj(): DurationModActionDbObj
     {
         return new DurationModActionDbObj(
-            "Mute",
+            "Ban",
             this.reason,
             this.issuer.id,
             this.target.id,

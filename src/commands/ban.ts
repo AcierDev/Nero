@@ -1,23 +1,23 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
-import {Mute} from "../moderation/actions/Mute";
-import humanize from 'humanize-duration';
 import {PermissionUtil} from "../util/PermissionUtil";
+import {Ban} from "../moderation/actions/Ban";
+import humanize from 'humanize-duration';
 
-export class MuteCommand extends Command
+export class BanCommand extends Command
 {
-    /// -------------------------------------------- //
+    // -------------------------------------------- //
     // CONSTRUCT
     // -------------------------------------------- //
     public constructor(context: Command.Context, options: Command.Options)
     {
         super(context, {
             ...options,
-            name: 'mute',
-            description: "time out a user",
+            name: 'ban',
+            description: 'Ban a user',
             runIn: CommandOptionsRunTypeEnum.GuildAny,
-            requiredClientPermissions: ['MUTE_MEMBERS'],
-        });
+            requiredClientPermissions: ["BAN_MEMBERS"]
+        })
     }
 
     // Register slash command
@@ -25,28 +25,28 @@ export class MuteCommand extends Command
     {
         registry.registerChatInputCommand(builder =>
             builder
-                .setName('mute')
-                .setDescription('time out a user')
+                .setName('ban')
+                .setDescription('Ban a user')
 
                 .addUserOption(option =>
                     option
                         .setName('user')
-                        .setDescription('Choose a user to time out')
+                        .setDescription('Choose a user to ban')
                         .setRequired(true)
                 )
 
                 .addStringOption(option =>
                     option
                         .setName('reason')
-                        .setDescription('Record a reason for this mute')
+                        .setDescription('Record a reason for this ban')
                         .setRequired(true)
                 )
 
                 .addStringOption(option =>
                     option
                         .setName('duration')
-                        .setDescription('Duration for this mute \'Examples: \`10m\` \`1h\` \`45m\` \`24h\` \'')
-                        .setRequired(true)
+                        .setDescription('Duration for this ban \'Examples: \`10m\` \`1h\` \`45m\` \`24h\` \'')
+                        .setRequired(false)
                 )
 
                 .addBooleanOption(option =>
@@ -63,13 +63,13 @@ export class MuteCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
-        // Generate a Mute object from this the interaction
-        const mute = await Mute.interactionFactory(interaction);
-        // If for some reason this interaction cannot be turned into a proper mute (for example command parameters that cannot be parsed into something meaningful)
+        // Generate a Ban object from this the interaction
+        const ban = await Ban.interactionFactory(interaction);
+        // If for some reason this interaction cannot be turned into a proper ban (for example command parameters that cannot be parsed into something meaningful)
         // Then the factory will have already responded with an error message, and we should just exit
-        if (! mute) return;
+        if (! ban) return;
         // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(mute, {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"})
+        const error = await PermissionUtil.checkPermissions(ban, {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"})
         // Handle a permission error, if any exists
         if (error)
         {
@@ -78,14 +78,16 @@ export class MuteCommand extends Command
             // Exit
             return;
         }
-        // Execute the Mute
-        const success: boolean = await mute.execute();
+
+        //Unlike the other moderation action classes, this action must be executed in a special order because user's cannot be messaged after they are banned
+        //I don't like doing things this way, but we have no choice to first record to the db, then message, then ban
+        const success: boolean = await ban.recordToDb() && await ban.messageTarget() && await ban.perform();
 
         if (success)
         {
             await interaction.reply({
-                content: `@${mute.target.tag} muted for ${humanize(mute._duration)}`,
-                ephemeral: mute.silent
+                content: `@${ban.target.tag} muted ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`,
+                ephemeral: ban.silent
             });
         } else
         {

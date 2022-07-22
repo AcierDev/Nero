@@ -19,6 +19,7 @@ class AbstractModerationAction {
     _channel;
     // Whether to display the moderation action in chat
     _silent;
+    //TODO comment field
     // -------------------------------------------- //
     // CONSTRUCTORS
     // -------------------------------------------- //
@@ -32,8 +33,9 @@ class AbstractModerationAction {
         this._channel = channel;
         this._silent = silent;
     }
-    //Constructor for id's instead of actual objects
-    //TODO
+    // -------------------------------------------- //
+    // GETTERS AND SETTERS
+    // -------------------------------------------- //
     get target() {
         return this._target;
     }
@@ -76,16 +78,23 @@ class AbstractModerationAction {
     set silent(value) {
         this._silent = value;
     }
+    // -------------------------------------------- //
+    // METHODS
+    // -------------------------------------------- //
     /**
      * Execute the moderation action
      */
-    async run() {
-        return await this.recordToDb() && await this.sendActionToPlayer() && this.perform();
+    async execute() {
+        // Program execution will short circuit. The moderation action will not be performed if it is not first recorded to the db
+        // Users will not be informed of the moderation action if it is not recorded to the db and executed in the guild.
+        // TODO separate these out so we can send proper error messages, instead of a generic "command failed" without any indication of which method failed to execute
+        //FIXME I really fucking hate that this will fail if we can't message the user
+        return await this.recordToDb() && await this.perform() && await this.messageTarget();
     }
     /**
      * Inform the target user about this moderation action
      */
-    async sendActionToPlayer() {
+    async messageTarget() {
         try {
             // Use the abstract method to generate an embed for this moderation action and send the embed to the target of the moderation action.
             // This might fail because there are situations where the bot cannot message the user
@@ -100,5 +109,12 @@ class AbstractModerationAction {
             return false;
         }
     }
+    /**
+     * Record the moderation action to the database
+     */
+    async recordToDb() {
+        return true;
+    }
+    ; //TODO adasdawdawdaw
 }
 exports.AbstractModerationAction = AbstractModerationAction;
