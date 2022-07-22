@@ -1,8 +1,8 @@
 import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
 import {MessageEmbed} from "discord.js";
 import {Command} from "@sapphire/framework";
-import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
-import {ModActionDbObj} from "../../db/types/ModActionDbObj";
+import {DbTypes} from "../../db/types/DbTypes";
+import ModActionDbObj = DbTypes.ModActionDbObj;
 
 export class Unmute extends AbstractModerationAction
 {

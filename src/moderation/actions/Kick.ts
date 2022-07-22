@@ -1,8 +1,8 @@
 import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
-import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
-import {ModActionDbObj} from "../../db/types/ModActionDbObj";
+import {DbTypes} from "../../db/types/DbTypes";
+import ModActionDbObj = DbTypes.ModActionDbObj;
 
 export class Kick extends AbstractModerationAction
 {
@@ -82,7 +82,7 @@ export class Kick extends AbstractModerationAction
     public toDbObj(): ModActionDbObj
     {
         return new ModActionDbObj(
-            "Mute",
+            "Kick",
             this.reason,
             this.issuer.id,
             this.target.id,

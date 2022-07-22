@@ -4,7 +4,8 @@ import humanize from 'humanize-duration';
 import {DurationBasedAction} from "../interfaces/DurationBasedAction";
 import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
-import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
+import {DbTypes} from "../../db/types/DbTypes";
+import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
 
 export class Mute extends AbstractModerationAction implements DurationBasedAction
 {
@@ -38,7 +39,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
         // get the command arguments
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
-        const durationString = interaction.options.getString('duration', true);
+        const durationString = interaction.options.getString('duration', true) ?? "";
         const silent = interaction.options.getBoolean('silent') ?? false;
 
         // Attempt to parse what the user entered for the duration into a number
