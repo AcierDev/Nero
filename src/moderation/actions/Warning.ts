@@ -19,8 +19,9 @@ export class Warning extends AbstractModerationAction
         // get the command arguments
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
-        const silent = interaction.options.getBoolean('silent') ?? false;
+        const silent = interaction.options.getBoolean('silent', false) ?? false;
 
+        // Create and return a new object
         return new Warning(
             user,
             reason,
@@ -33,7 +34,7 @@ export class Warning extends AbstractModerationAction
     }
 
     // -------------------------------------------- //
-    // OVERRIDES
+    // METHODS
     // -------------------------------------------- //
     override genEmbed(): MessageEmbed
     {
@@ -49,7 +50,8 @@ export class Warning extends AbstractModerationAction
 
     override async perform(): Promise<boolean>
     {
-        return Promise.resolve(true);
+        // Warnings don't actually do anything, so just indicate success
+        return true;
     }
 
     /**

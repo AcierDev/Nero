@@ -14,7 +14,7 @@ export class BanCommand extends Command
         super(context, {
             ...options,
             name: 'ban',
-            description: 'Ban a user',
+            description: 'Ban a user from the server',
             runIn: CommandOptionsRunTypeEnum.GuildAny,
             requiredClientPermissions: ["BAN_MEMBERS"]
         })
@@ -81,12 +81,13 @@ export class BanCommand extends Command
 
         //Unlike the other moderation action classes, this action must be executed in a special order because user's cannot be messaged after they are banned
         //I don't like doing things this way, but we have no choice to first record to the db, then message, then ban
+        //FIXME
         const success: boolean = await ban.recordToDb() && await ban.messageTarget() && await ban.perform();
 
         if (success)
         {
             await interaction.reply({
-                content: `@${ban.target.tag} muted ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`,
+                content: `@${ban.target.tag} banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`,
                 ephemeral: ban.silent
             });
         } else

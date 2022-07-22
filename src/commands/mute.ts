@@ -14,7 +14,7 @@ export class MuteCommand extends Command
         super(context, {
             ...options,
             name: 'mute',
-            description: "time out a user",
+            description: "mute a user from all communication",
             runIn: CommandOptionsRunTypeEnum.GuildAny,
             requiredClientPermissions: ['MUTE_MEMBERS'],
         });

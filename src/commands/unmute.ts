@@ -13,7 +13,7 @@ export class UnmuteCommand extends Command
         super(context, {
             ...options,
             name: 'unmute',
-            description: "Remove a user's time out",
+            description: "Remove a user's mute",
             runIn: CommandOptionsRunTypeEnum.GuildAny,
             requiredClientPermissions: ['MUTE_MEMBERS']
         });
