@@ -1,7 +1,8 @@
 import {MessageEmbed, User, TextBasedChannel, Guild} from "discord.js";
-import {ModActionDbObj} from "../../db/types/ModActionDbObj";
-import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
 import {DbManager} from "../../db/DbManager";
+import {DbTypes} from "../../db/types/DbTypes";
+import ModActionDbObj = DbTypes.ModActionDbObj;
+import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
 
 export abstract class AbstractModerationAction
 {
@@ -147,7 +148,7 @@ export abstract class AbstractModerationAction
         } catch (e)
         {
             //Stack trace
-            console.log(e);
+            console.log(e); 
 
             //Indicate the message was not sent
             return false;
@@ -159,7 +160,10 @@ export abstract class AbstractModerationAction
      */
     protected async recordToDb(): Promise<boolean>
     {
-        await DbManager.storeAction(this.toDbObj());
+        // Insert the action into the database
+        const dbObj = await DbManager.storeAction(this.toDbObj());
+
+        console.log(await DbManager.fetchAction(dbObj));
         return true;
     };
 

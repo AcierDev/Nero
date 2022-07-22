@@ -4,7 +4,8 @@ import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
 import {TimeUtil} from "../../util/TimeUtil";
 import humanize from 'humanize-duration';
-import {DurationModActionDbObj} from "../../db/types/DurationModActionDbObj";
+import {DbTypes} from "../../db/types/DbTypes";
+import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
 
 export class Ban extends AbstractModerationAction implements DurationBasedAction
 {
@@ -38,14 +39,14 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
         // get the command arguments
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
-        const durationString = interaction.options.getString('duration', false) ?? null;
+        const durationString = interaction.options.getString('duration', false) ?? "";
         const silent = interaction.options.getBoolean('silent') ?? false;
 
         // Attempt to parse what the user entered for the duration into a number
         const duration = TimeUtil.generateDuration(durationString.split(" "));
 
-        // If the parse failed
-        if (!duration)
+        // if the user provided a duration, and the parse of that duration failed
+        if (duration && !duration)
         {
             // Send error message
             await interaction.reply({
@@ -55,6 +56,7 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
             // Exit
             return;
         }
+
 
         // On successful parsing of the duration
         return new Ban(
@@ -85,6 +87,14 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
+
+    public override async execute(): Promise<boolean>
+    {
+        //Unlike the other moderation action classes, this action must be executed in a special order because user's cannot be messaged after they are banned
+        //I don't like doing things this way, but we have no choice to first record to the db, then message, then ban
+        //FIXME
+        return await this.recordToDb() && await this.messageTarget() && await this.perform();
+    }
 
     /**
      * Generate a discord embed providing the details of this moderation action

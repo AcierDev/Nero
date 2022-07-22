@@ -79,10 +79,8 @@ export class BanCommand extends Command
             return;
         }
 
-        //Unlike the other moderation action classes, this action must be executed in a special order because user's cannot be messaged after they are banned
-        //I don't like doing things this way, but we have no choice to first record to the db, then message, then ban
-        //FIXME
-        const success: boolean = await ban.recordToDb() && await ban.messageTarget() && await ban.perform();
+        // Attempt to execute the action in the guild
+        const success: boolean = await ban.execute()
 
         if (success)
         {
