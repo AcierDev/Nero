@@ -11,9 +11,9 @@ class CanKick extends framework_1.AllFlowsPrecondition {
     }
     // Slash command
     async chatInputRun(interaction) {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if ((0, discord_js_utilities_1.isGuildMember)(interaction.member)) {
-            // Check permissions
+            // Check command
             return this.canKick(interaction.member);
         }
         else {
@@ -22,9 +22,9 @@ class CanKick extends framework_1.AllFlowsPrecondition {
     }
     //Context menu command
     async contextMenuRun(interaction) {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if ((0, discord_js_utilities_1.isGuildMember)(interaction.member)) {
-            // Check permissions
+            // Check command
             return this.canKick(interaction.member);
         }
         else {

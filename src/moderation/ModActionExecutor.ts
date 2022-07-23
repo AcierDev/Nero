@@ -1,14 +1,15 @@
 import {AbstractModerationAction} from "./abstract/AbstractModerationAction";
-import {PermCheckOptions} from "../util/permissions/interfaces/PermCheckOptions";
-import {PermissionUtil} from "../util/permissions/PermissionUtil";
+import {PermCheckOptions} from "../util/command/interfaces/PermCheckOptions";
+import {CommandUtil} from "../util/command/CommandUtil";
 import {Command} from "@sapphire/framework";
+import {AdditionalCheckOptions} from "../util/command/interfaces/AdditionalCheckOptions";
 
 export class ModActionExecutor
 {
-    public static async execute(action: AbstractModerationAction, permChecks: PermCheckOptions, successMsgFunc: () => string, failureMsgFunc: () => string, interaction: Command.ChatInputInteraction)
+    public static async execute(action: AbstractModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, failureMsgFunc: () => string, interaction: Command.ChatInputInteraction)
     {
         // Perform all critical permission checks
-        const error = await PermissionUtil.checkPermissions(action, permChecks);
+        const error = await CommandUtil.checkPermissions(action, permChecks);
         // Handle a permission error, if any exists
         if (error)
         {

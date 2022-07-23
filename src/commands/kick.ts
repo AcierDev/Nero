@@ -1,6 +1,5 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
-import {PermissionUtil} from "../util/permissions/PermissionUtil";
 import {Kick} from "../moderation/actions/Kick";
 import {ModActionExecutor} from "../moderation/ModActionExecutor";
 

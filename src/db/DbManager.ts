@@ -13,15 +13,15 @@ export class DbManager
 
     public static async storeAction(action: ModActionDbObj | DurationModActionDbObj)
     {
-        const plainActionObj = classToPlain(action);
-        return await this.db.insert(plainActionObj);
+        // Serialize and insert object
+        return await this.db.insert(classToPlain(action));
     }
 
     public static async fetchAction(fetchOptions)
     {
-        // Fetch database object
+        // Fetch object from db
         const dbObj: NamedClass = await this.db.findOne(fetchOptions)
-        // Deserialize the object
+        // Deserialize and return object
         return Deserializer.deserialize(dbObj);
     }
 }

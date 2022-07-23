@@ -1,6 +1,5 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
-import {PermissionUtil} from "../util/permissions/PermissionUtil";
 import {Ban} from "../moderation/actions/Ban";
 import humanize from 'humanize-duration';
 import {ModActionExecutor} from "../moderation/ModActionExecutor";

@@ -2,7 +2,6 @@ import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphi
 import {Permissions} from "discord.js";
 import {Mute} from "../moderation/actions/Mute";
 import humanize from 'humanize-duration';
-import {PermissionUtil} from "../util/permissions/PermissionUtil";
 import {ModActionExecutor} from "../moderation/ModActionExecutor";
 
 export class MuteCommand extends Command

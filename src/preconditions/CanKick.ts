@@ -13,10 +13,10 @@ export class CanKick extends AllFlowsPrecondition
     // Slash command
     public override async chatInputRun(interaction: CommandInteraction)
     {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if (isGuildMember(interaction.member))
         {
-            // Check permissions
+            // Check command
             return this.canKick(interaction.member);
         } else
         {
@@ -27,10 +27,10 @@ export class CanKick extends AllFlowsPrecondition
     //Context menu command
     public override async contextMenuRun(interaction: ContextMenuInteraction)
     {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if (isGuildMember(interaction.member))
         {
-            // Check permissions
+            // Check command
             return this.canKick(interaction.member);
         } else
         {

@@ -1,7 +1,6 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Warning} from "../moderation/actions/Warning";
-import {PermissionUtil} from "../util/permissions/PermissionUtil";
 import {ModActionExecutor} from "../moderation/ModActionExecutor";
 
 export class WarnCommand extends Command
