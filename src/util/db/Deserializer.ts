@@ -1,5 +1,5 @@
-import {NamedClass} from "../moderation/interfaces/NamedClass";
-import {DbTypes} from "../db/types/DbTypes";
+import {NamedClass} from "../../moderation/interfaces/NamedClass";
+import {DbTypes} from "../../db/types/DbTypes";
 
 export class Deserializer
 {

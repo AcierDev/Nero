@@ -1,6 +1,6 @@
-import {AbstractModerationAction} from "../moderation/abstract/AbstractModerationAction";
-import {PermissionError} from "../errors/PermissionError";
-import {PermissionString} from "discord.js";
+import {AbstractModerationAction} from "../../moderation/abstract/AbstractModerationAction";
+import {PermissionError} from "../../errors/PermissionError";
+import {PermCheckOptions} from "./interfaces/PermCheckOptions";
 
 export class PermissionUtil
 {
@@ -9,12 +9,7 @@ export class PermissionUtil
      * @param action the moderation action that is going to be performed
      * @param options object containing the permissions you want to be checked
      */
-    public static async checkPermissions(action: AbstractModerationAction, options: {
-        checkTargetIsBelowClient?: boolean,
-        checkTargetIsBelowIssuer?: boolean,
-        ensureTargetIsInGuild?: boolean,
-        checkIssuerHasPerm?: PermissionString
-    }): Promise<null | PermissionError>
+    public static async checkPermissions(action: AbstractModerationAction, options: PermCheckOptions): Promise<null | PermissionError>
     {
         // If we should perform a check to ensure the issuing user has a certain permission node
         if (options.checkIssuerHasPerm)

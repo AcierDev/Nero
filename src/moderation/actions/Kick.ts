@@ -13,7 +13,7 @@ export class Kick extends AbstractModerationAction
     // --------------------------------------------//
 
     /**
-     * Generate a Mute instance from an interaction
+     * Generate a Kick object from an interaction
      */
     public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Kick>
     {

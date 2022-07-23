@@ -1,7 +1,8 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Unmute} from "../moderation/actions/Unmute";
-import {PermissionUtil} from "../util/PermissionUtil";
+import {PermissionUtil} from "../util/permissions/PermissionUtil";
+import {ModActionExecutor} from "../moderation/ModActionExecutor";
 
 export class UnmuteCommand extends Command
 {
@@ -61,31 +62,20 @@ export class UnmuteCommand extends Command
         // If for some reason this interaction cannot be turned into a proper unmute (for example command parameters that cannot be parsed into something meaningful)
         // Then the factory will have already responded with an error message, and we should just exit
         if (! unmute) return;
-        // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(unmute, {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"})
-        // Handle a permission error, if any exists
-        if (error)
-        {
-            // Send the user the error message
-            await interaction.reply({content: error.message, ephemeral: true});
-            // Exit
-            return;
-        }
-        // execute the Unmute
-        const success: boolean = await unmute.execute();
 
-        if (success)
-        {
-            await interaction.reply({
-                content: `@${unmute.target.tag} unmuted`,
-                ephemeral: unmute.silent
-            });
-        } else
-        {
-            await interaction.reply({
-                content: 'Error: command did not execute successfully',
-                ephemeral: true
-            })
-        }
+        // Attempt to execute the action in the guild
+        await ModActionExecutor.execute(
+            unmute,
+            {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            () =>
+            {
+                return `@**${unmute.target.tag}** unmuted`
+            },
+            () =>
+            {
+                return 'Error: command did not execute successfully'
+            },
+            interaction
+        )
     }
 }

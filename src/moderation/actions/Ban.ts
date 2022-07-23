@@ -32,7 +32,7 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
     // --------------------------------------------//
 
     /**
-     * Generate a Mute instance from an interaction
+     * Generate a Ban object from an interaction
      */
     public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Ban>
     {

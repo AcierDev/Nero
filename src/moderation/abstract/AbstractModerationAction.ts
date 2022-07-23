@@ -3,6 +3,7 @@ import {DbManager} from "../../db/DbManager";
 import {DbTypes} from "../../db/types/DbTypes";
 import ModActionDbObj = DbTypes.ModActionDbObj;
 import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
+import {Command} from "@sapphire/framework";
 
 export abstract class AbstractModerationAction
 {
@@ -148,7 +149,7 @@ export abstract class AbstractModerationAction
         } catch (e)
         {
             //Stack trace
-            console.log(e); 
+            console.log(e);
 
             //Indicate the message was not sent
             return false;

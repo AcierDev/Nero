@@ -11,8 +11,7 @@ export class Unmute extends AbstractModerationAction
     // -------------------------------------------- //
 
     /**
-     *
-     * @param interaction
+     * Generate a Unmute object from an interaction
      */
     public static interactionFactory(interaction: Command.ChatInputInteraction)
     {

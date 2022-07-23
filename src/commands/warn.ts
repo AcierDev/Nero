@@ -1,7 +1,8 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Warning} from "../moderation/actions/Warning";
-import {PermissionUtil} from "../util/PermissionUtil";
+import {PermissionUtil} from "../util/permissions/PermissionUtil";
+import {ModActionExecutor} from "../moderation/ModActionExecutor";
 
 export class WarnCommand extends Command
 {
@@ -54,25 +55,20 @@ export class WarnCommand extends Command
     {
         // Create a Warning instance from this interaction
         const warning = await Warning.interactionFactory(interaction);
-        // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(warning, {checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS"})
-        // Handle a permission error, if any exists
-        if (error)
-        {
-            // Send the user the error message
-            await interaction.reply({content: error.message, ephemeral: true});
-            // Exit
-            return;
-        }
-        // Execute the warning
-        const success: boolean = await warning.execute();
 
-        if (success)
-        {
-            await interaction.reply({content: `@${warning.target.tag} warned`, ephemeral: warning.silent});
-        } else
-        {
-            await interaction.reply({content: 'Error: command did not execute successfully', ephemeral: true})
-        }
+        // Attempt to execute the action in the guild
+        await ModActionExecutor.execute(
+            warning,
+            {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            () =>
+            {
+                return `@**${warning.target.tag}** warned`
+            },
+            () =>
+            {
+                return 'Error: command did not execute successfully'
+            },
+            interaction
+        )
     }
 }

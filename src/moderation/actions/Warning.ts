@@ -8,8 +8,6 @@ export class Warning extends AbstractModerationAction
 {
     // -------------------------------------------- //
     // STATIC FACTORIES
-    // Static methods to return an instance of the class
-    // because this shitty language doesn't have constructor overloading
     // -------------------------------------------- //
 
     /**
