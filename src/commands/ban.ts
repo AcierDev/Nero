@@ -74,13 +74,10 @@ export class BanCommand extends Command
         await ModActionExecutor.execute(
             ban,
             {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"},
+            {checkTargetNotBanned: true},
             () =>
             {
                 return `@**${ban.target.tag}** banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`
-            },
-            () =>
-            {
-                return 'Error: command did not execute successfully'
             },
             interaction
         )

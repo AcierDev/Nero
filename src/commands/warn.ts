@@ -58,14 +58,11 @@ export class WarnCommand extends Command
         // Attempt to execute the action in the guild
         await ModActionExecutor.execute(
             warning,
-            {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            { checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            {checkTargetIsInGuild: true},
             () =>
             {
                 return `@**${warning.target.tag}** warned`
-            },
-            () =>
-            {
-                return 'Error: command did not execute successfully'
             },
             interaction
         )

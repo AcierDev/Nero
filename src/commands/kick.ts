@@ -59,13 +59,10 @@ export class KickCommand extends Command
         await ModActionExecutor.execute(
             kick,
             {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"},
+            {},
             () =>
             {
                 return `@**${kick.target.tag}** kicked`
-            },
-            () =>
-            {
-                return 'Error: command did not execute successfully'
             },
             interaction
         )

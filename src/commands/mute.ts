@@ -72,14 +72,11 @@ export class MuteCommand extends Command
         // Attempt to execute the action in the guild
         await ModActionExecutor.execute(
             mute,
-            {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            {checkTargetIsInGuild: true, checkTargetNotMuted: true},
             () =>
             {
                 return `@**${mute.target.tag}** muted for **${humanize(mute._duration)}**`
-            },
-            () =>
-            {
-                return 'Error: command did not execute successfully'
             },
             interaction
         )

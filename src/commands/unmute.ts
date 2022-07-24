@@ -65,14 +65,11 @@ export class UnmuteCommand extends Command
         // Attempt to execute the action in the guild
         await ModActionExecutor.execute(
             unmute,
-            {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            {checkTargetIsInGuild: true},
             () =>
             {
                 return `@**${unmute.target.tag}** unmuted`
-            },
-            () =>
-            {
-                return 'Error: command did not execute successfully'
             },
             interaction
         )

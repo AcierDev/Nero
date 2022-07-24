@@ -6,33 +6,34 @@ import {AdditionalCheckOptions} from "../util/command/interfaces/AdditionalCheck
 
 export class ModActionExecutor
 {
-    public static async execute(action: AbstractModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, failureMsgFunc: () => string, interaction: Command.ChatInputInteraction)
+    public static async execute(action: AbstractModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, interaction: Command.ChatInputInteraction)
     {
         // Perform all critical permission checks
-        const error = await CommandUtil.checkPermissions(action, permChecks);
+        const commandPermissionError = await CommandUtil.performChecks(action, {permChecks: permChecks, additionalChecks: additionalChecks});
         // Handle a permission error, if any exists
-        if (error)
+        if (commandPermissionError)
         {
             // Send the user the error message
-            await interaction.reply({content: error.message, ephemeral: true});
+            await interaction.reply({content: commandPermissionError.message, ephemeral: true});
             // Exit
             return;
         }
 
         // Attempt to execute the action in the guild
-        const success: boolean = await action.execute()
+        const commandExecutionError = await action.execute();
 
-        if (success)
+        if (commandExecutionError)
+        {
+            await interaction.reply({
+                content: commandExecutionError.message,
+                ephemeral: true
+            })
+        }
+        else
         {
             await interaction.reply({
                 content: successMsgFunc(),
                 ephemeral: action.silent
-            });
-        } else
-        {
-            await interaction.reply({
-                content: failureMsgFunc(),
-                ephemeral: true
             })
         }
     }

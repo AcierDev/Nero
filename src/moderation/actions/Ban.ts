@@ -6,6 +6,7 @@ import {TimeUtil} from "../../util/TimeUtil";
 import humanize from 'humanize-duration';
 import {DbTypes} from "../../db/types/DbTypes";
 import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
+import {CommandExecutionError} from "../../errors/CommandExecutionError";
 
 export class Ban extends AbstractModerationAction implements DurationBasedAction
 {
@@ -88,12 +89,26 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
     // METHODS
     // -------------------------------------------- //
 
-    public override async execute(): Promise<boolean>
+    public override async execute(): Promise<CommandExecutionError | null>
     {
-        //Unlike the other moderation action classes, this action must be executed in a special order because user's cannot be messaged after they are banned
-        //I don't like doing things this way, but we have no choice to first record to the db, then message, then ban
-        //FIXME
-        return await this.recordToDb() && await this.messageTarget() && await this.perform();
+        // Record to db
+        if (!await this.recordToDb())
+            return new CommandExecutionError({message: "**Error:** Database operations error. Command was not executed"})
+        // Inform user
+        if (!await this.messageTarget())
+            return new CommandExecutionError({
+                message: "**Error:** There was an error informing the user about this moderation action. They have not received a private message." +
+                    " However, the command executed successfully, and all database operations were successful. This action will show in their history"
+            })
+        // Execute action
+        if (!await this.perform())
+            return new CommandExecutionError({
+                message: "**Error:** Database operations were successful and the command was recorded. There was an error in command execution." +
+                    " Do not expect the command to have been executed. User was not informed of this moderation action"
+            })
+
+        // Indicate success
+        return null;
     }
 
     /**
