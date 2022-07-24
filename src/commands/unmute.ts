@@ -66,10 +66,10 @@ export class UnmuteCommand extends Command
         await ModActionExecutor.execute(
             unmute,
             {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
-            {checkTargetIsInGuild: true},
+            {checkTargetIsInGuild: true, checkTargetMuted: true},
             () =>
             {
-                return `@**${unmute.target.tag}** unmuted`
+                return `${unmute.target} unmuted`
             },
             interaction
         )

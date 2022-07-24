@@ -1,4 +1,4 @@
-import {AbstractModerationAction} from "../../moderation/abstract/AbstractModerationAction";
+import {AbstractModerationAction} from "../../moderation/actions/AbstractModerationAction";
 import {PermCheckOptions} from "./interfaces/PermCheckOptions";
 import {AdditionalCheckOptions} from "./interfaces/AdditionalCheckOptions";
 import {CommandCheckError} from "../../errors/CommandCheckError";
@@ -30,7 +30,11 @@ export class CommandUtil
             const issuingMember = members.find(member => member.id == action.issuer.id);
             // Check if they have the requisite permission node
             if (!issuingMember.permissions.has(options.checkIssuerHasPerm))
-                return new CommandPermissionError({message: `**Error:** You are missing the permission node \`${options.checkIssuerHasPerm}\``})
+                return new CommandPermissionError({
+                    message: `You are missing the permission node \`${options.checkIssuerHasPerm}\``,
+                    emoji: '<:denied:1000899042852737144>',
+                    color: '#FF0000'
+                })
         }
 
         // If we should perform a check to see if the targeted user has higher command than the client
@@ -45,7 +49,11 @@ export class CommandUtil
                 return null;
             // Check if the target has higher command than the client
             if (targetMember.roles.highest.position >= me.roles.highest.position)
-                return new CommandPermissionError({message: "**Error:** That member's roles are higher or equal to mine. I cannot perform that command on them!"});
+                return new CommandPermissionError({
+                    message: `${action.target}'s roles are higher or equal to mine. I cannot perform that command on them`,
+                    emoji: '<:warning1:1000894892249194656>',
+                    color: '#FFCC00'
+                });
         }
 
         // If we should perform a check to see if the target's command are higher than the issuer's command
@@ -62,7 +70,11 @@ export class CommandUtil
                 return null;
             // Check if the target has higher command than the issuer
             if (targetMember.roles.highest.position >= issuingMember.roles.highest.position)
-                return new CommandPermissionError({message: "**Error:** That user's roles are higher or equal to yours. You cannot perform that command on them!"})
+                return new CommandPermissionError({
+                    message: `${action.target}'s roles are higher or equal to yours. You cannot perform that command on them`,
+                    emoji: '<:denied:1000899042852737144>',
+                    color: '#FF0000'
+                })
         }
     }
 
@@ -85,7 +97,11 @@ export class CommandUtil
             const found: boolean = members.some(member => member.id === action.target.id);
             // If the member was not found
             if (!found)
-                return new CommandCheckError({message: "**Error:** That user is not in this server!"});
+                return new CommandCheckError({
+                    message: `${action.target} is not in this server!`,
+                    emoji: '<:cancel:1000899820585754644>',
+                    color: '#FFCC00'
+                });
         }
 
         // If we should perform a check to ensure the targeted user is muted
@@ -96,7 +112,11 @@ export class CommandUtil
             if (!targetMember)
                 return null;
             if (!targetMember.isCommunicationDisabled())
-                return new CommandCheckError({message: "**Error**: user is not muted"})
+                return new CommandCheckError({
+                    message: `${action.target} is not muted`,
+                    emoji: '<:warning1:1000894892249194656>',
+                    color: '#FFCC00'
+                })
         }
 
         // If we should perform a check to ensure the targeted user is not muted
@@ -107,7 +127,11 @@ export class CommandUtil
             if (!targetMember)
                 return null;
             if (targetMember.isCommunicationDisabled())
-                return new CommandCheckError({message: "**Error**: user is already muted"})
+                return new CommandCheckError({
+                    message: `${action.target} is already muted`,
+                    emoji: '<:warning1:1000894892249194656>',
+                    color: '#FFCC00'
+                })
         }
 
         // If we should perform a check to ensure the targeted user is banned from this guild
@@ -117,7 +141,11 @@ export class CommandUtil
             const bans = await action.guild.bans.fetch();
             // Check if this user is banned
             if (!bans.some(ban => ban.user.id === action.target.id))
-                return new CommandCheckError({message: "**Error:** That user is not banned from this server"})
+                return new CommandCheckError({
+                    message: `${action.target} is not banned from this server`,
+                    emoji: '<:cancel:1000899820585754644>',
+                    color: '#FF0000'
+                })
         }
 
         // If we should perform a check to ensure the targeted user is not banned from this guild
@@ -127,7 +155,11 @@ export class CommandUtil
             const bans = await action.guild.bans.fetch();
             // Check if this user is banned
             if (bans.some(ban => ban.user.id === action.target.id))
-                return new CommandCheckError({message: "**Error:** That user is already banned from this server"});
+                return new CommandCheckError({
+                    message: `${action.target} is already banned from this server`,
+                    emoji: '<:warning1:1000894892249194656>',
+                    color: '#FFCC00'
+                })
         }
     }
 }

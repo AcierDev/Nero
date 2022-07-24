@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import Nedb from 'nedb-promises';
 import { classToPlain } from 'class-transformer';
 import {Deserializer} from "../util/db/Deserializer";
-import {NamedClass} from "../moderation/interfaces/NamedClass";
+import {NamedClass} from "./interfaces/NamedClass";
 import {DbTypes} from "./types/DbTypes";
 import ModActionDbObj = DbTypes.ModActionDbObj;
 import DurationModActionDbObj = DbTypes.DurationModActionDbObj;

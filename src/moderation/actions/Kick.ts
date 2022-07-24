@@ -1,4 +1,4 @@
-import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
+import {AbstractModerationAction} from "./AbstractModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
 import {DbTypes} from "../../db/types/DbTypes";
@@ -41,17 +41,17 @@ export class Kick extends AbstractModerationAction
     {
         // Record to db
         if (!await this.recordToDb())
-            return new CommandExecutionError({message: "**Error:** Database operations error. Command was not executed"})
+            return new CommandExecutionError({message: "**CommandError:** Database operations error. Command was not executed"})
         // Inform user
         if (!await this.messageTarget())
             return new CommandExecutionError({
-                message: "**Error:** There was an error informing the user about this moderation action. They have not received a private message." +
+                message: "**CommandError:** There was an error informing the user about this moderation action. They have not received a private message." +
                     " However, the command executed successfully, and all database operations were successful. This action will show in their history"
             })
         // Execute action
         if (!await this.perform())
             return new CommandExecutionError({
-                message: "**Error:** Database operations were successful and the command was recorded. There was an error in command execution." +
+                message: "**CommandError:** Database operations were successful and the command was recorded. There was an error in command execution." +
                     " Do not expect the command to have been executed. User was not informed of this moderation action"
             })
 

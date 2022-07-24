@@ -77,7 +77,7 @@ export class BanCommand extends Command
             {checkTargetNotBanned: true},
             () =>
             {
-                return `@**${ban.target.tag}** banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`
+                return `${ban.target} banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`
             },
             interaction
         )

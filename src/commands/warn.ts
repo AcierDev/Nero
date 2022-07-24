@@ -62,7 +62,7 @@ export class WarnCommand extends Command
             {checkTargetIsInGuild: true},
             () =>
             {
-                return `@**${warning.target.tag}** warned`
+                return `${warning.target} warned`
             },
             interaction
         )

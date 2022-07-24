@@ -1,4 +1,3 @@
-import {SapphireClient} from "@sapphire/framework";
 import {ClientWrapper} from "./ClientWrapper";
 
 require('dotenv').config();

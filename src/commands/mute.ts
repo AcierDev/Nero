@@ -73,10 +73,10 @@ export class MuteCommand extends Command
         await ModActionExecutor.execute(
             mute,
             {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
-            {checkTargetIsInGuild: true, checkTargetNotMuted: true},
+            {checkTargetIsInGuild: true},
             () =>
             {
-                return `@**${mute.target.tag}** muted for **${humanize(mute._duration)}**`
+                return `${mute.target} muted for **${humanize(mute._duration)}**`
             },
             interaction
         )
