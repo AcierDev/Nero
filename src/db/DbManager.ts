@@ -24,4 +24,10 @@ export class DbManager
         // Deserialize and return object
         return Deserializer.deserialize(dbObj);
     }
+
+    public static async deleteAction(fetchOptions)
+    {
+        // Remove the document from the db
+        return await this.db.remove(fetchOptions, {});
+    }
 }

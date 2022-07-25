@@ -89,7 +89,7 @@ class AbstractModerationAction {
         // Users will not be informed of the moderation action if it is not recorded to the db and executed in the guild.
         // TODO separate these out so we can send proper error messages, instead of a generic "command failed" without any indication of which method failed to execute
         //FIXME I really fucking hate that this will fail if we can't message the user
-        return await this.recordToDb() && await this.perform() && await this.messageTarget();
+        return await this.recordToDb() && await this.execute() && await this.messageTarget();
     }
     /**
      * Inform the target user about this moderation action

@@ -47,7 +47,7 @@ export class Warning extends AbstractModerationAction
         //TODO include guild invite link
     }
 
-    override async perform(): Promise<boolean>
+    override async execute(): Promise<boolean>
     {
         // Warnings don't actually do anything, so just indicate success
         return true;

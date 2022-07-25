@@ -73,7 +73,7 @@ class BanCommand extends framework_1.Command {
         }
         else {
             await interaction.reply({
-                content: 'CommandError: command did not execute successfully',
+                content: 'ErrorInterfaces: command did not execute successfully',
                 ephemeral: true
             });
         }

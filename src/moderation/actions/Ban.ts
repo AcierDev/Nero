@@ -6,7 +6,8 @@ import {TimeUtil} from "../../util/TimeUtil";
 import humanize from 'humanize-duration';
 import {DbTypes} from "../../db/types/DbTypes";
 import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
-import {CommandExecutionError} from "../../errors/CommandExecutionError";
+import {CommandError} from "../../errors/CommandError";
+import {DbManager} from "../../db/DbManager";
 
 export class Ban extends AbstractModerationAction implements DurationBasedAction
 {
@@ -89,22 +90,55 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
     // METHODS
     // -------------------------------------------- //
 
-    public override async execute(): Promise<CommandExecutionError | null>
+    public override async run(): Promise<CommandError | null>
     {
-        // Record to db
-        if (!await this.recordToDb())
-            return new CommandExecutionError({message: "**CommandError:** Database operations error. Command was not executed"})
-        // Inform user
-        if (!await this.messageTarget())
-            return new CommandExecutionError({
-                message: "**CommandError:** There was an error informing the user about this moderation action. They have not received a private message." +
-                    " However, the command executed successfully, and all database operations were successful. This action will show in their history"
+        // -------------------------------------------- //
+        // This method needs to be overriden because Bans need to be performed in a different order
+        // -------------------------------------------- //
+
+        // Record this action to db
+        const document = this.recordToDb();
+        // If document insertion into the db was not successful
+        if (!document)
+            // Return an error
+            return new CommandError({
+                message: "Database error ",
+                emoji: '<:database:1000894887429943327>',
+                additionalEmbedData: {
+                    color: '#FFCC00',
+                }
             })
-        // Execute action
-        if (!await this.perform())
-            return new CommandExecutionError({
-                message: "**CommandError:** Database operations were successful and the command was recorded. There was an error in command execution." +
-                    " Do not expect the command to have been executed. User was not informed of this moderation action"
+
+        // Inform user
+        const message = await this.informUser();
+
+        // Attempt to execute the moderation action in the guild
+        const success = await this.execute();
+        // If command was not executed successfully
+        if (!success)
+        {
+            // Remove the action from the db
+            await DbManager.deleteAction(document)
+
+            // Return an error
+            return new CommandError({
+                message: 'Command did not execute correctly',
+                emoji: '<:cancel1:1001219492573089872>',
+                additionalEmbedData: {
+                    color: '#FFCC00',
+                }
+            })
+        }
+
+        // If message could not be sent to user
+        if (!message)
+            // Return an error
+            return new CommandError({
+                message: "error sending message to user. Command execution was successful",
+                emoji: '<:errormessage:1000894890441453748>',
+                additionalEmbedData: {
+                    color: '#FFCC00'
+                }
             })
 
         // Indicate success
@@ -128,7 +162,7 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
     /**
      * Perform moderation actions in the guild
      */
-    public async perform(): Promise<boolean>
+    public async execute(): Promise<boolean>
     {
         try
         {

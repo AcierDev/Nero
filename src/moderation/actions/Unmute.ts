@@ -46,7 +46,7 @@ export class Unmute extends AbstractModerationAction
             .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
     }
 
-    override async perform(): Promise<boolean>
+    override async execute(): Promise<boolean>
     {
         try
         {

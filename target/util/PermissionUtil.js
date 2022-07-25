@@ -27,7 +27,7 @@ class PermissionUtil {
             const found = members.some(member => member.id === action.target.id);
             // If the member was not found
             if (!found)
-                return new PermissionError_1.PermissionError({ message: "**CommandError:** That user is not in this server!" });
+                return new PermissionError_1.PermissionError({ message: "**ErrorInterfaces:** That user is not in this server!" });
         }
         // If we should perform a check to see if the targeted user has higher command than the client
         if (options.checkTargetIsBelowClient) {
@@ -40,7 +40,7 @@ class PermissionUtil {
                 return null;
             // Check if the target has higher command than the client
             if (targetMember.roles.highest.position >= me.roles.highest.position)
-                return new PermissionError_1.PermissionError({ message: "**CommandError:** That member's roles are higher or equal to mine. I cannot perform that command on them!" });
+                return new PermissionError_1.PermissionError({ message: "**ErrorInterfaces:** That member's roles are higher or equal to mine. I cannot perform that command on them!" });
         }
         // If we should perform a check to see if the target's command are higher than the issuer's command
         if (options.checkTargetIsBelowIssuer) {
@@ -55,7 +55,7 @@ class PermissionUtil {
                 return null;
             // Check if the target has higher command than the issuer
             if (targetMember.roles.highest.position >= issuingMember.roles.highest.position)
-                return new PermissionError_1.PermissionError({ message: "**CommandError:** That user's roles are higher or equal to yours. You cannot perform that command on them!" });
+                return new PermissionError_1.PermissionError({ message: "**ErrorInterfaces:** That user's roles are higher or equal to yours. You cannot perform that command on them!" });
         }
     }
 }

@@ -3,7 +3,7 @@ import {PermCheckOptions} from "../util/command/interfaces/PermCheckOptions";
 import {CommandUtil} from "../util/command/CommandUtil";
 import {Command} from "@sapphire/framework";
 import {AdditionalCheckOptions} from "../util/command/interfaces/AdditionalCheckOptions";
-import {EmbedGenerator} from "../util/embeds/EmbedGenerator";
+import {MessageEmbed} from "discord.js";
 
 export class ModActionExecutor
 {
@@ -19,41 +19,30 @@ export class ModActionExecutor
         {
             // Send the user the error message
             await interaction.reply({
-                embeds: [
-                    EmbedGenerator.failureEmbed({
-                        message: commandPermissionError.message,
-                        emojiResolvable: commandPermissionError.emoji,
-                        colorResolvable: commandPermissionError.color
-                    })
-                ], ephemeral: true
+                embeds: [ commandPermissionError.toMessageEmbed() ], ephemeral: true
             });
             // Exit
             return;
         }
 
         // Attempt to execute the action in the guild
-        const commandExecutionError = await action.execute();
+        const commandExecutionError = await action.run();
 
         if (commandExecutionError)
         {
+            // Respond to user with nice error embed
             await interaction.reply({
-                embeds: [
-                    EmbedGenerator.failureEmbed({
-                        message: commandExecutionError.message,
-                        emojiResolvable: commandExecutionError.emoji,
-                        colorResolvable: commandExecutionError.color
-                    })
-                ],
+                embeds: [ commandExecutionError.toMessageEmbed() ],
                 ephemeral: true
             })
         } else
         {
+            // Respond to user with nice success embed
             await interaction.reply({
                 embeds: [
-                    EmbedGenerator.successEmbed({
-                        emojiResolvable: '<a:ezgif:1000822167631577249>',
-                        message: successMsgFunc()
-                    })
+                    new MessageEmbed()
+                        .setDescription('<a:ezgif:1000822167631577249>' + ' ' + successMsgFunc())
+                        .setColor('#03FBAB')
                 ],
                 ephemeral: action.silent
             })

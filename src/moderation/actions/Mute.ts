@@ -104,7 +104,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     /**
      * Perform the mute in the guild
      */
-    override async perform(): Promise<boolean>
+    override async execute(): Promise<boolean>
     {
         try
         {
