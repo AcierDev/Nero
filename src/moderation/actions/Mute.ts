@@ -1,7 +1,7 @@
-import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
+import {AbstractModerationAction} from "./AbstractModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import humanize from 'humanize-duration';
-import {DurationBasedAction} from "../interfaces/DurationBasedAction";
+import {DurationBasedAction} from "./DurationBasedAction";
 import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
 import {DbTypes} from "../../db/types/DbTypes";

@@ -3,6 +3,8 @@ import {DbManager} from "../../db/DbManager";
 import {DbTypes} from "../../db/types/DbTypes";
 import ModActionDbObj = DbTypes.ModActionDbObj;
 import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
+import {Command} from "@sapphire/framework";
+import {CommandExecutionError} from "../../errors/CommandExecutionError";
 
 export abstract class AbstractModerationAction
 {
@@ -121,15 +123,29 @@ export abstract class AbstractModerationAction
     // -------------------------------------------- //
 
     /**
-     * Execute the moderation action
+     * Perform the moderation action in the guild
+     * @returns CommandExecutionError - if any was encountered, null otherwise
      */
-    public async execute(): Promise<boolean>
+    public async execute(): Promise<CommandExecutionError | null>
     {
-        // Program execution will short circuit. The moderation action will not be performed if it is not first recorded to the db
-        // Users will not be informed of the moderation action if it is not recorded to the db and executed in the guild.
-        // TODO separate these out so we can send proper error messages, instead of a generic "command failed" without any indication of which method failed to execute
-        //FIXME I really fucking hate that this will fail if we can't message the user
-        return await this.recordToDb() && await this.perform() && await this.messageTarget();
+        // Record to db
+        if (!await this.recordToDb())
+            return new CommandExecutionError({message: "**CommandError:** Database operations error. Command was not executed"})
+        // Execute action
+        if (!await this.perform())
+            return new CommandExecutionError({
+                message: "**CommandError:** Database operations were successful and the command was recorded. There was an error in command execution." +
+                    " Do not expect the command to have been executed. User was not informed of this moderation action"
+            })
+        // Inform user
+        if (!await this.messageTarget())
+            return new CommandExecutionError({
+                message: "**CommandError:** There was an error informing the user about this moderation action. They have not received a private message." +
+                    " However, the command executed successfully, and all database operations were successful. This action will show in their history"
+            })
+
+        // Indicate success
+        return null;
     }
 
     /**
@@ -148,7 +164,7 @@ export abstract class AbstractModerationAction
         } catch (e)
         {
             //Stack trace
-            console.log(e); 
+            console.log(e);
 
             //Indicate the message was not sent
             return false;

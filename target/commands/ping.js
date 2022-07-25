@@ -34,7 +34,7 @@ class PingCommand extends framework_1.Command {
             // Edit reply to include websocket ping and API latency
             return interaction.editReply(`Bots ping: ${this.container.client.ws.ping}ms.\nAPI latency: ${sentMsg.createdTimestamp - interaction.createdTimestamp}ms.`);
         }
-        //Error case
+        //CommandError case
         return interaction.editReply(`Could not fetch the bots ping. Contact Acier`);
     }
 }

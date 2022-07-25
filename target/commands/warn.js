@@ -53,7 +53,7 @@ class WarnCommand extends framework_1.Command {
             await interaction.reply({ content: `@${warning.target.tag} warned`, ephemeral: warning.silent });
         }
         else {
-            await interaction.reply({ content: 'Error: command did not execute successfully', ephemeral: true });
+            await interaction.reply({ content: 'CommandError: command did not execute successfully', ephemeral: true });
         }
     }
 }

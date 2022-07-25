@@ -7,9 +7,9 @@ const discord_js_utilities_1 = require("@sapphire/discord.js-utilities");
 class CanBan extends framework_1.AllFlowsPrecondition {
     // Chat command
     async messageRun(message) {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if ((0, discord_js_utilities_1.isGuildMember)(message.member)) {
-            // Check their permissions
+            // Check their command
             return this.canBan(message.member);
         }
         else {
@@ -18,9 +18,9 @@ class CanBan extends framework_1.AllFlowsPrecondition {
     }
     // Slash command
     async chatInputRun(interaction) {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if ((0, discord_js_utilities_1.isGuildMember)(interaction.member)) {
-            // Check permissions
+            // Check command
             return this.canBan(interaction.member);
         }
         else {
@@ -29,9 +29,9 @@ class CanBan extends framework_1.AllFlowsPrecondition {
     }
     //Context menu command
     async contextMenuRun(interaction) {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if ((0, discord_js_utilities_1.isGuildMember)(interaction.member)) {
-            // Check permissions
+            // Check command
             return this.canBan(interaction.member);
         }
         else {

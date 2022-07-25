@@ -47,7 +47,7 @@ export class PingCommand extends Command
             return interaction.editReply(`Bots ping: ${this.container.client.ws.ping}ms.\nAPI latency: ${sentMsg.createdTimestamp - interaction.createdTimestamp}ms.`)
         }
 
-        //Error case
+        //CommandError case
         return interaction.editReply(`Could not fetch the bots ping. Contact Acier`);
     }
 }

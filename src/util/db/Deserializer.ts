@@ -1,8 +1,11 @@
-import {NamedClass} from "../moderation/interfaces/NamedClass";
-import {DbTypes} from "../db/types/DbTypes";
+import {NamedClass} from "../../db/interfaces/NamedClass";
+import {DbTypes} from "../../db/types/DbTypes";
 
 export class Deserializer
 {
+    /**
+     * @param json to be deserialized into a Typescript object
+     */
     public static deserialize(json: NamedClass)
     {
         // Generate a blank object of the correct type
@@ -18,7 +21,7 @@ export class Deserializer
             }
             // If the property itself is an object, let's deserialize it recursively
             if (json[prop] && typeof json[prop] === 'object')
-            {
+             {
                 instance[prop] = this.deserialize(json[prop]);
             }
             else

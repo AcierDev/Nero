@@ -1,19 +1,18 @@
-import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
+import {AbstractModerationAction} from "./AbstractModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
 import {DbTypes} from "../../db/types/DbTypes";
 import ModActionDbObj = DbTypes.ModActionDbObj;
+import {CommandExecutionError} from "../../errors/CommandExecutionError";
 
 export class Kick extends AbstractModerationAction
 {
     // -------------------------------------------- //
     // STATIC FACTORIES
-    // Static methods to return an instance of the class
-    // because this shitty language doesn't have constructor overloading
     // --------------------------------------------//
 
     /**
-     * Generate a Mute instance from an interaction
+     * Generate a Kick object from an interaction
      */
     public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Kick>
     {
@@ -37,6 +36,28 @@ export class Kick extends AbstractModerationAction
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
+
+    public override async execute(): Promise<CommandExecutionError | null>
+    {
+        // Record to db
+        if (!await this.recordToDb())
+            return new CommandExecutionError({message: "**CommandError:** Database operations error. Command was not executed"})
+        // Inform user
+        if (!await this.messageTarget())
+            return new CommandExecutionError({
+                message: "**CommandError:** There was an error informing the user about this moderation action. They have not received a private message." +
+                    " However, the command executed successfully, and all database operations were successful. This action will show in their history"
+            })
+        // Execute action
+        if (!await this.perform())
+            return new CommandExecutionError({
+                message: "**CommandError:** Database operations were successful and the command was recorded. There was an error in command execution." +
+                    " Do not expect the command to have been executed. User was not informed of this moderation action"
+            })
+
+        // Indicate success
+        return null;
+    }
 
     /**
      * Generate a discord embed providing the details of this moderation action

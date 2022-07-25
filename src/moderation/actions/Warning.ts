@@ -1,4 +1,4 @@
-import {AbstractModerationAction} from "../abstract/AbstractModerationAction";
+import {AbstractModerationAction} from "./AbstractModerationAction";
 import {MessageEmbed} from "discord.js";
 import {Command} from "@sapphire/framework";
 import {DbTypes} from "../../db/types/DbTypes";
@@ -8,8 +8,6 @@ export class Warning extends AbstractModerationAction
 {
     // -------------------------------------------- //
     // STATIC FACTORIES
-    // Static methods to return an instance of the class
-    // because this shitty language doesn't have constructor overloading
     // -------------------------------------------- //
 
     /**

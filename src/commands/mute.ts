@@ -2,7 +2,7 @@ import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphi
 import {Permissions} from "discord.js";
 import {Mute} from "../moderation/actions/Mute";
 import humanize from 'humanize-duration';
-import {PermissionUtil} from "../util/PermissionUtil";
+import {ModActionExecutor} from "../moderation/ModActionExecutor";
 
 export class MuteCommand extends Command
 {
@@ -68,31 +68,17 @@ export class MuteCommand extends Command
         // If for some reason this interaction cannot be turned into a proper mute (for example command parameters that cannot be parsed into something meaningful)
         // Then the factory will have already responded with an error message, and we should just exit
         if (! mute) return;
-        // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(mute, {ensureTargetIsInGuild: true, checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"})
-        // Handle a permission error, if any exists
-        if (error)
-        {
-            // Send the user the error message
-            await interaction.reply({content: error.message, ephemeral: true});
-            // Exit
-            return;
-        }
-        // Execute the Mute
-        const success: boolean = await mute.execute();
 
-        if (success)
-        {
-            await interaction.reply({
-                content: `@${mute.target.tag} muted for ${humanize(mute._duration)}`,
-                ephemeral: mute.silent
-            });
-        } else
-        {
-            await interaction.reply({
-                content: 'Error: command did not execute successfully',
-                ephemeral: true
-            })
-        }
+        // Attempt to execute the action in the guild
+        await ModActionExecutor.execute(
+            mute,
+            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
+            {checkTargetIsInGuild: true},
+            () =>
+            {
+                return `${mute.target} muted for **${humanize(mute._duration)}**`
+            },
+            interaction
+        )
     }
 }

@@ -7,10 +7,10 @@ export class CanBan extends AllFlowsPrecondition
     // Chat command
     public override async messageRun(message: Message)
     {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if (isGuildMember(message.member))
         {
-            // Check their permissions
+            // Check their command
             return this.canBan(message.member);
         } else
         {
@@ -21,10 +21,10 @@ export class CanBan extends AllFlowsPrecondition
     // Slash command
     public override async chatInputRun(interaction: CommandInteraction)
     {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if (isGuildMember(interaction.member))
         {
-            // Check permissions
+            // Check command
             return this.canBan(interaction.member);
         } else
         {
@@ -35,10 +35,10 @@ export class CanBan extends AllFlowsPrecondition
     //Context menu command
     public override async contextMenuRun(interaction: ContextMenuInteraction)
     {
-        // Ensure they are a GuildMember, so we can check their permissions
+        // Ensure they are a GuildMember, so we can check their command
         if (isGuildMember(interaction.member))
         {
-            // Check permissions
+            // Check command
             return this.canBan(interaction.member);
         } else
         {

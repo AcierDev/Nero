@@ -1,8 +1,8 @@
 import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
 import {Permissions} from "discord.js";
-import {PermissionUtil} from "../util/PermissionUtil";
 import {Ban} from "../moderation/actions/Ban";
 import humanize from 'humanize-duration';
+import {ModActionExecutor} from "../moderation/ModActionExecutor";
 
 export class BanCommand extends Command
 {
@@ -65,35 +65,21 @@ export class BanCommand extends Command
     {
         // Generate a Ban object from this the interaction
         const ban = await Ban.interactionFactory(interaction);
+
         // If for some reason this interaction cannot be turned into a proper ban (for example command parameters that cannot be parsed into something meaningful)
         // Then the factory will have already responded with an error message, and we should just exit
-        if (! ban) return;
-        // Perform critical permission checks
-        const error = await PermissionUtil.checkPermissions(ban, {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"})
-        // Handle a permission error, if any exists
-        if (error)
-        {
-            // Send the user the error message
-            await interaction.reply({content: error.message, ephemeral: true});
-            // Exit
-            return;
-        }
+        if (!ban) return;
 
         // Attempt to execute the action in the guild
-        const success: boolean = await ban.execute()
-
-        if (success)
-        {
-            await interaction.reply({
-                content: `@${ban.target.tag} banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`,
-                ephemeral: ban.silent
-            });
-        } else
-        {
-            await interaction.reply({
-                content: 'Error: command did not execute successfully',
-                ephemeral: true
-            })
-        }
+        await ModActionExecutor.execute(
+            ban,
+            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"},
+            {checkTargetNotBanned: true},
+            () =>
+            {
+                return `${ban.target} banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`
+            },
+            interaction
+        )
     }
 }

@@ -1,5 +1,5 @@
-import {NamedClass} from "../../moderation/interfaces/NamedClass";
-import {DurationBasedAction} from "../../moderation/interfaces/DurationBasedAction";
+import {NamedClass} from "../interfaces/NamedClass";
+import {DurationBasedAction} from "../../moderation/actions/DurationBasedAction";
 
 export module DbTypes
 {
