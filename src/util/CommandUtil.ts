@@ -1,11 +1,11 @@
-import {AbstractModerationAction} from "../../moderation/actions/AbstractModerationAction";
-import {PermCheckOptions} from "./interfaces/PermCheckOptions";
-import {AdditionalCheckOptions} from "./interfaces/AdditionalCheckOptions";
-import {CommandError} from "../../errors/CommandError";
+import {ModerationAction} from "../moderation/actions/ModerationAction";
+import {PermCheckOptions} from "../interfaces/PermCheckOptions";
+import {AdditionalCheckOptions} from "../interfaces/AdditionalCheckOptions";
+import {CommandError} from "../errors/CommandError";
 
 export class CommandUtil
 {
-    static async performChecks(action: AbstractModerationAction, options: { permChecks?: PermCheckOptions, additionalChecks?: AdditionalCheckOptions }): Promise<null | CommandError>
+    static async performChecks(action: ModerationAction, options: { permChecks?: PermCheckOptions, additionalChecks?: AdditionalCheckOptions }): Promise<null | CommandError>
     {
         return await this.checkPermissions(action, options.permChecks) || await this.performAdditionalChecks(action, options.additionalChecks);
     }
@@ -15,7 +15,7 @@ export class CommandUtil
      * @param action the moderation action that is going to be performed
      * @param options object containing which checks you want to be performed
      */
-    public static async checkPermissions(action: AbstractModerationAction, options: PermCheckOptions): Promise<null | CommandError>
+    public static async checkPermissions(action: ModerationAction, options: PermCheckOptions): Promise<null | CommandError>
     {
         if (!options)
             return null;
@@ -30,7 +30,7 @@ export class CommandUtil
             // Check if they have the requisite permission node
             if (!issuingMember.permissions.has(options.checkIssuerHasPerm))
                 return new CommandError({
-                    message: `You are missing the permission node \`${options.checkIssuerHasPerm}\``,
+                    message: `You are missing the permission \`${options.checkIssuerHasPerm}\``,
                     emoji: '<:denied:1000899042852737144>',
                     additionalEmbedData: {
                         color: '#FF0000'
@@ -88,7 +88,7 @@ export class CommandUtil
      * @param action the moderation action that is going to be performed
      * @param options object containing which checks to be performed
      */
-    public static async performAdditionalChecks(action: AbstractModerationAction, options: AdditionalCheckOptions): Promise<null | CommandError>
+    public static async performAdditionalChecks(action: ModerationAction, options: AdditionalCheckOptions): Promise<null | CommandError>
     {
         if (!options)
             return null;
@@ -156,7 +156,7 @@ export class CommandUtil
                     message: `${action.target} is not banned from this server`,
                     emoji: '<:cancel:1000899820585754644>',
                     additionalEmbedData: {
-                        color: '#FF0000'
+                        color: '#FFCC00'
                     }
                 })
         }

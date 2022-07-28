@@ -1,16 +1,68 @@
 import {MessageEmbed, User, TextBasedChannel, Guild, Message} from "discord.js";
 import {DbManager} from "../../db/DbManager";
-import {DbTypes} from "../../db/types/DbTypes";
-import ModActionDbObj = DbTypes.ModActionDbObj;
-import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
+import {DbTypes} from "../../db/DbTypes";
 import {CommandError} from "../../errors/CommandError";
+import {Command} from "@sapphire/framework";
+import ModActionDbType = DbTypes.ModActionDbType;
+import {ClientWrapper} from "../../ClientWrapper";
+import DurationActionDbType = DbTypes.DurationActionDbType;
+import adler from "adler-32";
+import {Warning} from "./Warning";
 
-export abstract class AbstractModerationAction
+export class ModerationAction
 {
+    // -------------------------------------------- //
+    // STATIC FACTORIES
+    // -------------------------------------------- //
+    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<ModerationAction>
+    {
+        // get the command arguments
+        const target = interaction.options.getUser('user', true);
+        const reason = interaction.options.getString('reason', true);
+        const silent = interaction.options.getBoolean('silent', false) ?? false;
+
+        // Create and return a new object
+        return new ModerationAction(
+            target,
+            reason,
+            interaction.user,
+            Date.now(),
+            interaction.guild,
+            interaction.channel,
+            silent,
+            {}
+        );
+    }
+
+    public static async dbFactory(document: ModActionDbType): Promise<ModerationAction>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new ModerationAction(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                {id: document.id}
+            )
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e)
+            return null;
+        }
+    }
+
     // -------------------------------------------- //
     // FIELDS
     // -------------------------------------------- //
 
+    // Name of this type of moderation action
+    private _type: string;
     // user being moderated
     private _target: User;
     // Reason provided for this moderation action
@@ -25,6 +77,8 @@ export abstract class AbstractModerationAction
     private _channel: TextBasedChannel;
     // Whether to display the moderation action in chat
     private _silent: boolean;
+    // unique identifier of this action
+    private _id: string;
     //TODO comment field
 
     // -------------------------------------------- //
@@ -32,15 +86,19 @@ export abstract class AbstractModerationAction
     // -------------------------------------------- //
 
     // Default constructor
-    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean)
+    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, options: { id?: string })
     {
-        this._target = target;
-        this._reason = reason;
-        this._issuer = issuer;
-        this._timestamp = timestamp;
-        this._guild = guild;
-        this._channel = channel;
-        this._silent = silent;
+        this.type = this.constructor.name;
+        this.target = target;
+        this.reason = reason;
+        this.issuer = issuer;
+        this.timestamp = timestamp;
+        this.guild = guild;
+        this.channel = channel;
+        this.silent = silent;
+
+        // Hash the issuer's id and the timestamp into a unique identifier
+        this.id = options.id ?? adler.str(this.issuer.id + this.timestamp).toString(35);
     }
 
     // -------------------------------------------- //
@@ -117,6 +175,26 @@ export abstract class AbstractModerationAction
         this._silent = value;
     }
 
+    get type(): string
+    {
+        return this._type;
+    }
+
+    set type(value: string)
+    {
+        this._type = value;
+    }
+
+    get id(): string
+    {
+        return this._id;
+    }
+
+    set id(id: string)
+    {
+        this._id = id;
+    }
+
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
@@ -142,6 +220,7 @@ export abstract class AbstractModerationAction
 
         // Attempt to execute the moderation action in the guild
         const success = await this.execute();
+        console.log(success)
         // If command was not executed successfully
         if (!success)
         {
@@ -179,13 +258,13 @@ export abstract class AbstractModerationAction
     /**
      * Inform the target user about this moderation action
      */
-    public async informUser(): Promise<Message>
+    protected async informUser(): Promise<Message>
     {
         try
         {
             // Use the abstract method to generate an embed for this moderation action and send the embed to the target of the moderation action.
             // This might fail because there are situations where the bot cannot message the user
-            return await this.target.send({embeds: [this.genEmbed()]})
+            return await this.target.send({embeds: [this.toMessageEmbed()]})
         } catch (e)
         {
             //Stack trace
@@ -204,22 +283,46 @@ export abstract class AbstractModerationAction
         return await DbManager.storeAction(this.toDbObj());
     };
 
+    /**
+     * Generate a database object from this action
+     */
+    protected toDbObj(): ModActionDbType | DurationActionDbType
+    {
+        return new ModActionDbType(
+            this.constructor.name,
+            this.reason,
+            this.issuer.id,
+            this.target.id,
+            this.guild.id,
+            this.channel.id,
+            this.silent,
+            this.timestamp,
+            this.id
+        )
+    }
+
+    public toString(): string
+    {
+        return `User: ${this.target}`
+         + `\n Moderator: ${this.issuer}`
+         + `\n Reason: ${this.reason}`
+         + `\n Date: <t:${Math.trunc(this.timestamp / 1000)}:F>`
+         + `\n Id: ${this.id}`
+    }
+
     // -------------------------------------------- //
     // ABSTRACT
     // -------------------------------------------- //
 
-    /**
-     * Generate a database object from this action
-     */
-    abstract toDbObj(): ModActionDbObj | DurationModActionDbObj
+    async execute(): Promise<boolean>
+    {
+        // OVERRIDE ME
+        return false;
+    }
 
-    /**
-     * Generate a discord embed providing the details of this moderation action
-     */
-    abstract genEmbed(): MessageEmbed;
-
-    /**
-     * Perform moderation actions in the guild (if applicable)
-     */
-    abstract execute(): Promise<boolean>;
+    toMessageEmbed(): MessageEmbed
+    {
+        // OVERRIDE ME
+        return null;
+    }
 }

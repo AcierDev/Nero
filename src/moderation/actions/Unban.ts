@@ -1,15 +1,17 @@
-import {MessageEmbed} from "discord.js";
+import {ModerationAction} from "./ModerationAction";
+import {Message, MessageEmbed} from "discord.js";
 import {CommandError} from "../../errors/CommandError";
+import {DbTypes} from "../../db/DbTypes";
+import ModActionDbObj = DbTypes.ModActionDbType;
 import {DbManager} from "../../db/DbManager";
 import {Command} from "@sapphire/framework";
-import {ModerationAction} from "./ModerationAction";
 
-export class Kick extends ModerationAction
+export class Unban extends ModerationAction
 {
     // -------------------------------------------- //
     // STATIC FACTORIES
     // -------------------------------------------- //
-    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Kick>
+    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Unban>
     {
         // get the command arguments
         const target = interaction.options.getUser('user', true);
@@ -17,7 +19,7 @@ export class Kick extends ModerationAction
         const silent = interaction.options.getBoolean('silent', false) ?? false;
 
         // Create and return a new object
-        return new Kick(
+        return new Unban(
             target,
             reason,
             interaction.user,
@@ -32,14 +34,14 @@ export class Kick extends ModerationAction
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
-    public override async run(): Promise<CommandError | null>
+    override async run(): Promise<CommandError | null>
     {
         // -------------------------------------------- //
-        // This method needs to be overriden because Kicks need to be performed in a different order
+        // THIS METHOD MUST BE OVERRIDEN BECAUSE WE CANNOT INFORM A USER ABOUT AN UNBAN
         // -------------------------------------------- //
 
         // Record this action to db
-        const document = await this.recordToDb();
+        const document = this.recordToDb();
         // If document insertion into the db was not successful
         if (!document)
             // Return an error
@@ -50,9 +52,6 @@ export class Kick extends ModerationAction
                     color: '#FFCC00',
                 }
             })
-
-        // Inform user
-        const message = await this.informUser();
 
         // Attempt to execute the moderation action in the guild
         const success = await this.execute();
@@ -72,49 +71,19 @@ export class Kick extends ModerationAction
             })
         }
 
-        // If message could not be sent to user
-        if (!message)
-            // Return an error
-            return new CommandError({
-                message: "error sending message to user. Command execution was successful",
-                emoji: '<:errormessage:1000894890441453748>',
-                additionalEmbedData: {
-                    color: '#FFCC00'
-                }
-            })
-
         // Indicate success
         return null;
     }
 
     /**
-     * Generate a discord embed providing the details of this moderation action
+     * Perform moderation actions in the guild
      */
-    override toMessageEmbed(): MessageEmbed
-    {
-        return new MessageEmbed()
-            .setTitle('You were kicked')
-            .setColor('#FF3131')
-            .setThumbnail(this.guild.iconURL())
-            .setDescription(`${this.target} you have been **Kicked** from **${this.guild.name}**`)
-            .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
-            .setFooter({ text: `${this.guild.name}`, iconURL: this.guild.iconURL() })
-    }
-
-    /**
-     * Perform the kick in the guild
-     */
-    override async execute(): Promise<boolean>
+    public async execute(): Promise<boolean>
     {
         try
         {
-            // Try to find the target user in the guild
-            const member = (await this.guild.members.fetch()).find(member => member.id == this.target.id);
-            // If the member isn't found, indicate a failure. This should be an unreachable state
-            if (!member)
-                return false;
-            // Attempt to kick the user via the api
-            await member.kick(this.reason)
+            // Attempt to ban via the guild
+            await this.guild.bans.remove(this.target, this.reason);
             // Indicate success
             return true;
         } catch (e)

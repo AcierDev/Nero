@@ -1,13 +1,13 @@
-import {AbstractModerationAction} from "./actions/AbstractModerationAction";
-import {PermCheckOptions} from "../util/command/interfaces/PermCheckOptions";
-import {CommandUtil} from "../util/command/CommandUtil";
+import {ModerationAction} from "./actions/ModerationAction";
+import {PermCheckOptions} from "../interfaces/PermCheckOptions";
+import {CommandUtil} from "../util/CommandUtil";
 import {Command} from "@sapphire/framework";
-import {AdditionalCheckOptions} from "../util/command/interfaces/AdditionalCheckOptions";
+import {AdditionalCheckOptions} from "../interfaces/AdditionalCheckOptions";
 import {MessageEmbed} from "discord.js";
 
 export class ModActionExecutor
 {
-    public static async execute(action: AbstractModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, interaction: Command.ChatInputInteraction)
+    public static async execute(action: ModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, interaction: Command.ChatInputInteraction)
     {
         // Perform all critical permission checks
         const commandPermissionError = await CommandUtil.performChecks(action, {
@@ -19,7 +19,7 @@ export class ModActionExecutor
         {
             // Send the user the error message
             await interaction.reply({
-                embeds: [ commandPermissionError.toMessageEmbed() ], ephemeral: true
+                embeds: [commandPermissionError.toMessageEmbed()], ephemeral: action.silent
             });
             // Exit
             return;
@@ -32,8 +32,8 @@ export class ModActionExecutor
         {
             // Respond to user with nice error embed
             await interaction.reply({
-                embeds: [ commandExecutionError.toMessageEmbed() ],
-                ephemeral: true
+                embeds: [commandExecutionError.toMessageEmbed()],
+                ephemeral: action.silent
             })
         } else
         {

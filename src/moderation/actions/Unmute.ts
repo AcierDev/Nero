@@ -1,26 +1,20 @@
-import {AbstractModerationAction} from "./AbstractModerationAction";
+import {ModerationAction} from "./ModerationAction";
 import {MessageEmbed} from "discord.js";
 import {Command} from "@sapphire/framework";
-import {DbTypes} from "../../db/types/DbTypes";
-import ModActionDbObj = DbTypes.ModActionDbObj;
 
-export class Unmute extends AbstractModerationAction
+export class Unmute extends ModerationAction
 {
     // -------------------------------------------- //
-    // STATIC FACTORY
+    // STATIC FACTORIES
     // -------------------------------------------- //
-
-    /**
-     * Generate a Unmute object from an interaction
-     */
-    public static interactionFactory(interaction: Command.ChatInputInteraction)
+    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Unmute>
     {
-        // Get the command arguments
+        // get the command arguments
         const target = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
         const silent = interaction.options.getBoolean('silent', false) ?? false;
 
-        // Construct and return an UnMute instance
+        // Create and return a new object
         return new Unmute(
             target,
             reason,
@@ -28,17 +22,18 @@ export class Unmute extends AbstractModerationAction
             Date.now(),
             interaction.guild,
             interaction.channel,
-            silent
+            silent,
+            {}
         );
     }
 
     // -------------------------------------------- //
     // OVERRIDES
     // -------------------------------------------- //
-    override genEmbed(): MessageEmbed
+    override toMessageEmbed(): MessageEmbed
     {
         return new MessageEmbed()
-            .setTitle('You were unmuted!')
+            .setTitle('You were unmuted')
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL())
             .setDescription(`${this.target} you have been **unmuted** from **${this.guild.name}**`)
@@ -66,22 +61,5 @@ export class Unmute extends AbstractModerationAction
             // Indicate a failure
             return false;
         }
-    }
-
-    /**
-     * Generate a db object
-     */
-    public toDbObj(): ModActionDbObj
-    {
-        return new ModActionDbObj(
-            "Unmute",
-            this.reason,
-            this.issuer.id,
-            this.target.id,
-            this.guild.id,
-            this.channel.id,
-            this.silent,
-            this.timestamp,
-        )
     }
 }

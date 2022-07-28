@@ -1,18 +1,19 @@
 import {NamedClass} from "../interfaces/NamedClass";
-import {DurationBasedAction} from "../../moderation/actions/DurationBasedAction";
+import {DurationBasedAction} from "../interfaces/DurationBasedAction";
+import adler from 'adler-32';
 
 export module DbTypes
 {
-    export class ModActionDbObj implements NamedClass
+    export class ModActionDbType implements NamedClass
     {
 
         // -------------------------------------------- //
         // FIELDS
         // -------------------------------------------- //
-        _clazzName = "ModActionDbObj";
+        _clazzName = "ModActionDbType";
 
         // mame of the moderation action
-        private _name: string;
+        private _type: string;
         // reason provided for this moderation action
         private _reason: string;
         // id of the user who issued this moderation action
@@ -27,14 +28,19 @@ export module DbTypes
         private _silent: boolean;
         // timestamp of the moderation action
         private _timestamp: number;
+        // whether this action was deleted
+        private _deleted: boolean;
+        // unique id of this action
+        private _id: string;
+
 
         // -------------------------------------------- //
         // CONSTRUCTOR
         // -------------------------------------------- //
 
-        constructor(name: string, reason: string, issuerId: string, targetId: string, guildId: string, channelId: string, silent: boolean, timestamp: number)
+        constructor(name: string, reason: string, issuerId: string, targetId: string, guildId: string, channelId: string, silent: boolean, timestamp: number, id: string)
         {
-            this.name = name;
+            this.type = name;
             this.reason = reason;
             this.issuerId = issuerId;
             this.targetId = targetId;
@@ -42,6 +48,8 @@ export module DbTypes
             this.channelId = channelId;
             this.silent = silent;
             this.timestamp = timestamp;
+            this.deleted = false;
+            this.id = id;
         }
 
         // -------------------------------------------- //
@@ -51,14 +59,15 @@ export module DbTypes
         {
             return this._clazzName;
         }
-        get name(): string
+
+        get type(): string
         {
-            return this._name;
+            return this._type;
         }
 
-        set name(value: string)
+        set type(value: string)
         {
-            this._name = value;
+            this._type = value;
         }
 
         get reason(): string
@@ -120,6 +129,7 @@ export module DbTypes
         {
             this._silent = value;
         }
+
         get timestamp(): number
         {
             return this._timestamp;
@@ -129,24 +139,44 @@ export module DbTypes
         {
             this._timestamp = value;
         }
+
+        get deleted(): boolean
+        {
+            return this._deleted;
+        }
+
+        set deleted(deleted: boolean)
+        {
+            this._deleted = deleted;
+        }
+
+        get id(): string
+        {
+            return this._id;
+        }
+
+        set id(id: string)
+        {
+            this._id = id;
+        }
     }
 
-    export class DurationModActionDbObj extends ModActionDbObj implements DurationBasedAction, NamedClass
+    export class DurationActionDbType extends ModActionDbType implements DurationBasedAction, NamedClass
     {
         // -------------------------------------------- //
         // FIELDS
         // -------------------------------------------- //
 
         _duration: number;
-        _clazzName = "DurationModActionDbObj";
+        _clazzName = "DurationActionDbType";
 
         // -------------------------------------------- //
         // CONSTRUCTOR
         // -------------------------------------------- //
 
-        constructor(name: string, reason: string, issuerId: string, targetId: string, guildId: string, channelId: string, silent: boolean, timestamp: number, duration: number)
+        constructor(name: string, reason: string, issuerId: string, targetId: string, guildId: string, channelId: string, silent: boolean, timestamp: number, duration: number, id: string)
         {
-            super(name, reason, issuerId, targetId, guildId, channelId, silent, timestamp);
+            super(name, reason, issuerId, targetId, guildId, channelId, silent, timestamp, id);
             this.duration = duration;
         }
 
@@ -158,13 +188,10 @@ export module DbTypes
         {
             return this._duration;
         }
+
         set duration(value: number)
         {
             this._duration = value;
-        }
-        get clazzName(): string
-        {
-            return this._clazzName;
         }
 
         // -------------------------------------------- //

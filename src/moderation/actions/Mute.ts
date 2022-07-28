@@ -1,52 +1,36 @@
-import {AbstractModerationAction} from "./AbstractModerationAction";
+import {ModerationAction} from "./ModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import humanize from 'humanize-duration';
-import {DurationBasedAction} from "./DurationBasedAction";
+import {DurationBasedAction} from "../../interfaces/DurationBasedAction";
 import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
-import {DbTypes} from "../../db/types/DbTypes";
-import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
+import {DbTypes} from "../../db/DbTypes";
+import DurationModActionDbObj = DbTypes.DurationActionDbType;
+import {DurationModerationAction} from "./DurationModerationAction";
 
-export class Mute extends AbstractModerationAction implements DurationBasedAction
+export class Mute extends DurationModerationAction
 {
     // -------------------------------------------- //
-    // ADDITIONAL FIELDS
-    // -------------------------------------------- //
-    _duration: number;
-
-    // -------------------------------------------- //
-    // CONSTRUCTOR
-    // -------------------------------------------- //
-    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, duration: number)
-    {
-        // Pass to super
-        super(target, reason, issuer, timestamp, guild, channel, silent);
-
-        this.duration = duration;
-    }
-
-    // -------------------------------------------- //
-    // STATIC FACTORIES
-    // Static methods to return an instance of the class
-    // because this shitty language doesn't have constructor overloading
+    // STATIC FACTORY
     // --------------------------------------------//
 
     /**
-     * Generate a Mute instance from an interaction
+     * Create and return an object from an interaction
+     * @param interaction
      */
     public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Mute>
     {
         // get the command arguments
         const user = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
-        const durationString = interaction.options.getString('duration', true) ?? "";
+        const durationString = interaction.options.getString('duration', false) ?? "";
         const silent = interaction.options.getBoolean('silent') ?? false;
 
         // Attempt to parse what the user entered for the duration into a number
         const duration = TimeUtil.generateDuration(durationString.split(" "));
 
-        // If the parse failed
-        if (!duration)
+        // if the user provided a duration, and the parse of that duration failed
+        if (duration && !duration)
         {
             // Send error message
             await interaction.reply({
@@ -56,6 +40,7 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
             // Exit
             return;
         }
+
 
         // On successful parsing of the duration
         return new Mute(
@@ -71,29 +56,16 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
     }
 
     // -------------------------------------------- //
-    // GETTERS AND SETTERS
-    // -------------------------------------------- //
-    get duration(): number
-    {
-        return this._duration;
-    }
-
-    set duration(value: number)
-    {
-        this._duration = value;
-    }
-
-    // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
 
     /**
      * Generate a discord embed providing the details of this moderation action
      */
-    override genEmbed(): MessageEmbed
+    override toMessageEmbed(): MessageEmbed
     {
         return new MessageEmbed()
-            .setTitle('Your were muted!')
+            .setTitle('Your were muted')
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL())
             .setDescription(`${this.target} you have been **muted** from **${this.guild.name}** for **${humanize(this._duration)}**`)
@@ -123,31 +95,5 @@ export class Mute extends AbstractModerationAction implements DurationBasedActio
             // Indicate failure
             return false;
         }
-    }
-
-    /**
-     * Get the duration remaining for this mute
-     */
-    public getDurationRemaining(): number
-    {
-        return Math.min(0, this.duration - (Date.now() - this.timestamp))
-    }
-
-    /**
-     * Generate a db object
-     */
-    public toDbObj(): DurationModActionDbObj
-    {
-        return new DurationModActionDbObj(
-            "Mute",
-            this.reason,
-            this.issuer.id,
-            this.target.id,
-            this.guild.id,
-            this.channel.id,
-            this.silent,
-            this.timestamp,
-            this.duration
-        )
     }
 }

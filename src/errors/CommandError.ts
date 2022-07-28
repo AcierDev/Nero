@@ -65,7 +65,6 @@ export class CommandError
         // Set any other optional fields that were passed to the constructor
         for (const field in this.embedData)
             embed[field] = this.embedData[field];
-        console.log(embed)
 
         return embed;
     }

@@ -98,7 +98,7 @@ class AbstractModerationAction {
         try {
             // Use the abstract method to generate an embed for this moderation action and send the embed to the target of the moderation action.
             // This might fail because there are situations where the bot cannot message the user
-            await this.target.send({ embeds: [this.genEmbed()] });
+            await this.target.send({ embeds: [this.toMessageEmbed()] });
             // Indicate the message was sent
             return true;
         }
