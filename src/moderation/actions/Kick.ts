@@ -2,7 +2,7 @@ import {MessageEmbed} from "discord.js";
 import {CommandError} from "../../errors/CommandError";
 import {DbManager} from "../../db/DbManager";
 import {Command} from "@sapphire/framework";
-import {ModerationAction} from "./ModerationAction";
+import {ModerationAction} from "../types/ModerationAction";
 
 export class Kick extends ModerationAction
 {

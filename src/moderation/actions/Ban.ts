@@ -1,6 +1,6 @@
 import {CommandError} from "../../errors/CommandError";
 import {DbManager} from "../../db/DbManager";
-import {DurationModerationAction} from "./DurationModerationAction";
+import {DurationModerationAction} from "../types/DurationModerationAction";
 import {Command} from "@sapphire/framework";
 import {TimeUtil} from "../../util/TimeUtil";
 
@@ -48,6 +48,7 @@ export class Ban extends DurationModerationAction
             interaction.channel,
             silent,
             duration,
+            {}
         );
     }
 

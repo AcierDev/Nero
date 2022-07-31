@@ -1,4 +1,4 @@
-import {ModerationAction} from "./ModerationAction";
+import {ModerationAction} from "../types/ModerationAction";
 import {Message, MessageEmbed} from "discord.js";
 import {CommandError} from "../../errors/CommandError";
 import {DbTypes} from "../../db/DbTypes";

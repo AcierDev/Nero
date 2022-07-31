@@ -1,4 +1,4 @@
-import {ModerationAction} from "./ModerationAction";
+import {ModerationAction} from "../types/ModerationAction";
 import {MessageEmbed} from "discord.js";
 import {Command} from "@sapphire/framework";
 

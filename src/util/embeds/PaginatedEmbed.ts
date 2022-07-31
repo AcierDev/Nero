@@ -1,8 +1,8 @@
 import {
-    EmbedField, InteractionReplyOptions,
+    EmbedField,
     Message,
     MessageActionRow,
-    MessageButton, MessageEditOptions,
+    MessageButton,
     MessageEmbed,
     MessageEmbedOptions,
 } from "discord.js";
@@ -21,13 +21,13 @@ export class PaginatedEmbed
     // -------------------------------------------- //
 
     // maximum amount of fields per page
-    private readonly maxFields: number;
+    protected readonly maxFields: number;
     // array of embed objects to be displayed
-    private readonly pages: MessageEmbed[];
+    protected readonly pages: MessageEmbed[];
     // current page
-    private currPage: number;
+    protected currPage: number;
     // global embed fields
-    private readonly embedOptions: MessageEmbedOptions;
+    protected readonly embedOptions: MessageEmbedOptions;
 
     // -------------------------------------------- //
     // CONSTRUCTOR
@@ -66,9 +66,21 @@ export class PaginatedEmbed
         this.addField(field)
     }
 
-    private createPage()
+    protected createPage()
     {
+        // Create and push a new page
         this.pages.push(new MessageEmbed(this.embedOptions));
+
+        // Refresh the page number footers
+        this.refreshFooters()
+    }
+
+    protected refreshFooters()
+    {
+        for (let i = 0; i < this.pages.length; i++)
+        {
+            this.pages[i].setFooter(`page: ${i + 1}/${this.pages.length}`)
+        }
     }
 
     public getMessage()
@@ -96,7 +108,8 @@ export class PaginatedEmbed
 
     public createCollector(message: Message)
     {
-        const collector = message.createMessageComponentCollector({componentType: "BUTTON", time: 60 * 1000});
+        //TODO test time limit
+        const collector = message.createMessageComponentCollector({componentType: "BUTTON", time: 30 * 1000});
 
         collector.on('collect', async btnInteraction =>
         {

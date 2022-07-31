@@ -1,4 +1,4 @@
-import {ModerationAction} from "./actions/ModerationAction";
+import {ModerationAction} from "./types/ModerationAction";
 import {PermCheckOptions} from "../interfaces/PermCheckOptions";
 import {CommandUtil} from "../util/CommandUtil";
 import {Command} from "@sapphire/framework";

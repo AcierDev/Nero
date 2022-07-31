@@ -1,4 +1,4 @@
-import {ModerationAction} from "./ModerationAction";
+import {ModerationAction} from "../types/ModerationAction";
 import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
 import humanize from 'humanize-duration';
 import {DurationBasedAction} from "../../interfaces/DurationBasedAction";
@@ -6,7 +6,7 @@ import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
 import {DbTypes} from "../../db/DbTypes";
 import DurationModActionDbObj = DbTypes.DurationActionDbType;
-import {DurationModerationAction} from "./DurationModerationAction";
+import {DurationModerationAction} from "../types/DurationModerationAction";
 
 export class Mute extends DurationModerationAction
 {
@@ -52,6 +52,7 @@ export class Mute extends DurationModerationAction
             interaction.channel,
             silent,
             duration,
+            {}
         );
     }
 

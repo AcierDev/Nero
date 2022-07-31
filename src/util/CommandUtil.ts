@@ -1,4 +1,4 @@
-import {ModerationAction} from "../moderation/actions/ModerationAction";
+import {ModerationAction} from "../moderation/types/ModerationAction";
 import {PermCheckOptions} from "../interfaces/PermCheckOptions";
 import {AdditionalCheckOptions} from "../interfaces/AdditionalCheckOptions";
 import {CommandError} from "../errors/CommandError";
