@@ -1,44 +1,39 @@
-import {AbstractModerationAction} from "./AbstractModerationAction";
+import {ModerationAction} from "../types/ModerationAction";
 import {MessageEmbed} from "discord.js";
 import {Command} from "@sapphire/framework";
-import {DbTypes} from "../../db/types/DbTypes";
-import ModActionDbObj = DbTypes.ModActionDbObj;
 
-export class Warning extends AbstractModerationAction
+export class Warning extends ModerationAction
 {
     // -------------------------------------------- //
     // STATIC FACTORIES
     // -------------------------------------------- //
-
-    /**
-     * Generate an instance of a Warning from an interaction
-     */
-    public static async interactionFactory(interaction: Command.ChatInputInteraction)
+    public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Warning>
     {
         // get the command arguments
-        const user = interaction.options.getUser('user', true);
+        const target = interaction.options.getUser('user', true);
         const reason = interaction.options.getString('reason', true);
         const silent = interaction.options.getBoolean('silent', false) ?? false;
 
         // Create and return a new object
         return new Warning(
-            user,
+            target,
             reason,
             interaction.user,
             Date.now(),
             interaction.guild,
             interaction.channel,
-            silent
+            silent,
+            {}
         );
     }
 
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
-    override genEmbed(): MessageEmbed
+    override toMessageEmbed(): MessageEmbed
     {
         return new MessageEmbed()
-            .setTitle('You were warned!')
+            .setTitle('You were warned')
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL({format: 'png'}))
             .setDescription(`${this.target} you have received a **warning** from **${this.guild.name}**`)
@@ -47,27 +42,9 @@ export class Warning extends AbstractModerationAction
         //TODO include guild invite link
     }
 
-    override async perform(): Promise<boolean>
+    override async execute(): Promise<boolean>
     {
         // Warnings don't actually do anything, so just indicate success
         return true;
     }
-
-    /**
-     * Generate a db object
-     */
-    public toDbObj(): ModActionDbObj
-    {
-        return new ModActionDbObj(
-            "Warning",
-            this.reason,
-            this.issuer.id,
-            this.target.id,
-            this.guild.id,
-            this.channel.id,
-            this.silent,
-            this.timestamp,
-        )
-    }
-
 }

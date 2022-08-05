@@ -1,13 +1,13 @@
-import {AbstractModerationAction} from "./actions/AbstractModerationAction";
-import {PermCheckOptions} from "../util/command/interfaces/PermCheckOptions";
-import {CommandUtil} from "../util/command/CommandUtil";
+import {ModerationAction} from "./types/ModerationAction";
+import {PermCheckOptions} from "../interfaces/PermCheckOptions";
+import {CommandUtil} from "../util/CommandUtil";
 import {Command} from "@sapphire/framework";
-import {AdditionalCheckOptions} from "../util/command/interfaces/AdditionalCheckOptions";
-import {EmbedGenerator} from "../util/embeds/EmbedGenerator";
+import {AdditionalCheckOptions} from "../interfaces/AdditionalCheckOptions";
+import {MessageEmbed} from "discord.js";
 
 export class ModActionExecutor
 {
-    public static async execute(action: AbstractModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, interaction: Command.ChatInputInteraction)
+    public static async execute(action: ModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, interaction: Command.ChatInputInteraction)
     {
         // Perform all critical permission checks
         const commandPermissionError = await CommandUtil.performChecks(action, {
@@ -19,41 +19,30 @@ export class ModActionExecutor
         {
             // Send the user the error message
             await interaction.reply({
-                embeds: [
-                    EmbedGenerator.failureEmbed({
-                        message: commandPermissionError.message,
-                        emojiResolvable: commandPermissionError.emoji,
-                        colorResolvable: commandPermissionError.color
-                    })
-                ], ephemeral: true
+                embeds: [commandPermissionError.toMessageEmbed()], ephemeral: action.silent
             });
             // Exit
             return;
         }
 
         // Attempt to execute the action in the guild
-        const commandExecutionError = await action.execute();
+        const commandExecutionError = await action.run();
 
         if (commandExecutionError)
         {
+            // Respond to user with nice error embed
             await interaction.reply({
-                embeds: [
-                    EmbedGenerator.failureEmbed({
-                        message: commandExecutionError.message,
-                        emojiResolvable: commandExecutionError.emoji,
-                        colorResolvable: commandExecutionError.color
-                    })
-                ],
-                ephemeral: true
+                embeds: [commandExecutionError.toMessageEmbed()],
+                ephemeral: action.silent
             })
         } else
         {
+            // Respond to user with nice success embed
             await interaction.reply({
                 embeds: [
-                    EmbedGenerator.successEmbed({
-                        emojiResolvable: '<a:ezgif:1000822167631577249>',
-                        message: successMsgFunc()
-                    })
+                    new MessageEmbed()
+                        .setDescription('<a:ezgif:1000822167631577249>' + ' ' + successMsgFunc())
+                        .setColor('#03FBAB')
                 ],
                 ephemeral: action.silent
             })

@@ -1,10 +1,10 @@
-import {ChatInputCommand, Command, CommandOptionsRunTypeEnum, err} from "@sapphire/framework";
+import {ChatInputCommand, Command, CommandOptionsRunTypeEnum} from "@sapphire/framework";
 import {Permissions} from "discord.js";
 import {Ban} from "../moderation/actions/Ban";
-import humanize from 'humanize-duration';
 import {ModActionExecutor} from "../moderation/ModActionExecutor";
+import {Unban} from "../moderation/actions/Unban";
 
-export class BanCommand extends Command
+export class UnbanCommand extends Command
 {
     // -------------------------------------------- //
     // CONSTRUCT
@@ -13,8 +13,8 @@ export class BanCommand extends Command
     {
         super(context, {
             ...options,
-            name: 'ban',
-            description: 'Ban a user from the server',
+            name: 'unban',
+            description: 'Unban a user from the server',
             runIn: CommandOptionsRunTypeEnum.GuildAny,
             requiredClientPermissions: ["BAN_MEMBERS"]
         })
@@ -25,28 +25,21 @@ export class BanCommand extends Command
     {
         registry.registerChatInputCommand(builder =>
             builder
-                .setName('ban')
-                .setDescription('Ban a user')
+                .setName('unban')
+                .setDescription('Unban a user from the server')
 
                 .addUserOption(option =>
                     option
                         .setName('user')
-                        .setDescription('Choose a user to ban')
+                        .setDescription('Choose a user to unban')
                         .setRequired(true)
                 )
 
                 .addStringOption(option =>
                     option
                         .setName('reason')
-                        .setDescription('Record a reason for this ban')
+                        .setDescription('Record a reason for this unban')
                         .setRequired(true)
-                )
-
-                .addStringOption(option =>
-                    option
-                        .setName('duration')
-                        .setDescription('Duration for this ban \'Examples: \`10m\` \`1h\` \`45m\` \`24h\` \'')
-                        .setRequired(false)
                 )
 
                 .addBooleanOption(option =>
@@ -64,20 +57,18 @@ export class BanCommand extends Command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
         // Generate a Ban object from this the interaction
-        const ban = await Ban.interactionFactory(interaction);
-
-        // If for some reason this interaction cannot be turned into a proper ban (for example command parameters that cannot be parsed into something meaningful)
-        // Then the factory will have already responded with an error message, and we should just exit
-        if (!ban) return;
+        const unban = await Unban.interactionFactory(interaction);
+        // If an object could not be created for whatever reason
+        if (!unban) return;
 
         // Attempt to execute the action in the guild
         await ModActionExecutor.execute(
-            ban,
-            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"},
-            {checkTargetNotBanned: true},
+            unban,
+            {checkIssuerHasPerm: "BAN_MEMBERS"},
+            {checkTargetBanned: true},
             () =>
             {
-                return `${ban.target} banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`
+                return `${unban.target} unbanned`
             },
             interaction
         )

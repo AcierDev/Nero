@@ -1,39 +1,18 @@
-import {AbstractModerationAction} from "./AbstractModerationAction";
-import {DurationBasedAction} from "./DurationBasedAction";
-import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
+import {CommandError} from "../../errors/CommandError";
+import {DbManager} from "../../db/DbManager";
+import {DurationModerationAction} from "../types/DurationModerationAction";
 import {Command} from "@sapphire/framework";
 import {TimeUtil} from "../../util/TimeUtil";
-import humanize from 'humanize-duration';
-import {DbTypes} from "../../db/types/DbTypes";
-import DurationModActionDbObj = DbTypes.DurationModActionDbObj;
-import {CommandExecutionError} from "../../errors/CommandExecutionError";
 
-export class Ban extends AbstractModerationAction implements DurationBasedAction
+export class Ban extends DurationModerationAction
 {
     // -------------------------------------------- //
-    // ADDITIONAL FIELDS
-    // -------------------------------------------- //
-    _duration: number;
-
-    // -------------------------------------------- //
-    // CONSTRUCTOR
-    // -------------------------------------------- //
-    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, duration: number)
-    {
-        // Pass to super
-        super(target, reason, issuer, timestamp, guild, channel, silent);
-
-        this.duration = duration;
-    }
-
-    // -------------------------------------------- //
-    // STATIC FACTORIES
-    // Static methods to return an instance of the class
-    // because this shitty language doesn't have constructor overloading
+    // STATIC FACTORY
     // --------------------------------------------//
 
     /**
-     * Generate a Ban object from an interaction
+     * Create and return an object from an interaction
+     * @param interaction
      */
     public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<Ban>
     {
@@ -69,42 +48,63 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
             interaction.channel,
             silent,
             duration,
+            {}
         );
-    }
-
-    // -------------------------------------------- //
-    // GETTERS AND SETTERS
-    // -------------------------------------------- //
-    get duration(): number
-    {
-        return this._duration;
-    }
-
-    set duration(value: number)
-    {
-        this._duration = value;
     }
 
     // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
 
-    public override async execute(): Promise<CommandExecutionError | null>
+    public override async run(): Promise<CommandError | null>
     {
-        // Record to db
-        if (!await this.recordToDb())
-            return new CommandExecutionError({message: "**CommandError:** Database operations error. Command was not executed"})
-        // Inform user
-        if (!await this.messageTarget())
-            return new CommandExecutionError({
-                message: "**CommandError:** There was an error informing the user about this moderation action. They have not received a private message." +
-                    " However, the command executed successfully, and all database operations were successful. This action will show in their history"
+        // -------------------------------------------- //
+        // This method needs to be overriden because Bans need to be performed in a different order
+        // -------------------------------------------- //
+
+        // Record this action to db
+        const document = this.recordToDb();
+        // If document insertion into the db was not successful
+        if (!document)
+            // Return an error
+            return new CommandError({
+                message: "Database error ",
+                emoji: '<:database:1000894887429943327>',
+                additionalEmbedData: {
+                    color: '#FFCC00',
+                }
             })
-        // Execute action
-        if (!await this.perform())
-            return new CommandExecutionError({
-                message: "**CommandError:** Database operations were successful and the command was recorded. There was an error in command execution." +
-                    " Do not expect the command to have been executed. User was not informed of this moderation action"
+
+        // Inform user
+        const message = await this.informUser();
+
+        // Attempt to execute the moderation action in the guild
+        const success = await this.execute();
+        // If command was not executed successfully
+        if (!success)
+        {
+            // Remove the action from the db
+            await DbManager.deleteAction(document)
+
+            // Return an error
+            return new CommandError({
+                message: 'Command did not execute correctly',
+                emoji: '<:cancel1:1001219492573089872>',
+                additionalEmbedData: {
+                    color: '#FFCC00',
+                }
+            })
+        }
+
+        // If message could not be sent to user
+        if (!message)
+            // Return an error
+            return new CommandError({
+                message: "error sending message to user. Command execution was successful",
+                emoji: '<:errormessage:1000894890441453748>',
+                additionalEmbedData: {
+                    color: '#FFCC00'
+                }
             })
 
         // Indicate success
@@ -112,33 +112,14 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
     }
 
     /**
-     * Generate a discord embed providing the details of this moderation action
-     */
-    public genEmbed(): MessageEmbed
-    {
-        return new MessageEmbed()
-            .setTitle('You were banned!')
-            .setColor('#FF3131')
-            .setThumbnail(this.guild.iconURL())
-            .setDescription(`${this.target} you have been **banned** from **${this.guild.name}** ${this._duration ? `for **${humanize(this._duration)}**` : ''}`)
-            .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
-            .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
-    }
-
-    /**
      * Perform moderation actions in the guild
      */
-    public async perform(): Promise<boolean>
+    public async execute(): Promise<boolean>
     {
         try
         {
-            // Try to find the target user in the guild
-            const member = (await this.guild.members.fetch()).find(member => member.id == this.target.id);
-            // If the member isn't found, indicate a failure. This should be an unreachable state
-            if (!member)
-                return false;
-            // Attempt to time out the user via the api
-            await member.ban({reason: this.reason, days: 1});
+            // Attempt to ban via the guild
+            await this.guild.bans.create(this.target, {reason: this.reason, days: 1});
             // Indicate success
             return true;
         } catch (e)
@@ -147,31 +128,5 @@ export class Ban extends AbstractModerationAction implements DurationBasedAction
             // Indicate failure
             return false;
         }
-    }
-
-    /**
-     * Get the duration remaining for this ban
-     */
-    public getDurationRemaining(): number
-    {
-        return Math.min(0, this.duration - (Date.now() - this.timestamp))
-    }
-
-    /**
-     * Generate a db object
-     */
-    public toDbObj(): DurationModActionDbObj
-    {
-        return new DurationModActionDbObj(
-            "Ban",
-            this.reason,
-            this.issuer.id,
-            this.target.id,
-            this.guild.id,
-            this.channel.id,
-            this.silent,
-            this.timestamp,
-            this.duration
-        )
     }
 }
