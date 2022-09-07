@@ -1,10 +1,9 @@
-import {ModerationAction} from "../types/ModerationAction";
-import {Message, MessageEmbed} from "discord.js";
+import {ModerationAction} from "../ModerationAction";
+import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {CommandError} from "../../errors/CommandError";
-import {DbTypes} from "../../db/DbTypes";
-import ModActionDbObj = DbTypes.ModActionDbType;
 import {DbManager} from "../../db/DbManager";
 import {Command} from "@sapphire/framework";
+import {Ban} from "./Ban";
 
 export class Unban extends ModerationAction
 {
@@ -29,6 +28,19 @@ export class Unban extends ModerationAction
             silent,
             {}
         );
+    }
+
+    // -------------------------------------------- //
+    // CONSTRUCT
+    // -------------------------------------------- //
+    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, options: { id?: string, type?: string }) {
+        super(target, reason, issuer, timestamp, guild, channel, silent, options);
+
+        // Set the required permission checks that need to be executed before this action runs
+        this.executionChecks = {checkIssuerHasPerm: "BAN_MEMBERS", checkTargetBanned: true};
+
+        // Set the success message that will be shown to the command executor after the command runs successfully
+        this.successMsgFunc = () => `${this.target} unbanned`
     }
 
     // -------------------------------------------- //
@@ -92,5 +104,14 @@ export class Unban extends ModerationAction
             // Indicate failure
             return false;
         }
+    }
+
+    override genUndoAction(interaction: SelectMenuInteraction, reason: string, duration) {
+        return new Ban(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, duration, {})
+    }
+
+    override toMessageEmbed(): MessageEmbed {
+        // This doesn't need to be defined since an unban is never sent to the user
+        return undefined;
     }
 }

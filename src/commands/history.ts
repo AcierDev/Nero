@@ -48,15 +48,18 @@ export class HistoryCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+        // Defer reply
+        await interaction.deferReply();
+
         // Fetch the command parameters
         const user = interaction.options.getUser('user', false) ?? null;
         const boolean = interaction.options.getBoolean('silent', false) ?? false;
 
         // Fetch a paginated embed of the user's moderation history, or the guild's moderation history if no user was provided
-        const paginated = await HistoryUtil.fetchHistoryEmbed(interaction.guild.id, {})
+        const paginated = await HistoryUtil.fetchHistoryEmbed(interaction.guild.id, {userId: user?.id})
 
         // Send the paginated message
-        const sent = await interaction.reply(paginated.getMessage()) as any
+        const sent = await interaction.followUp(paginated.getMessage()) as any
 
         paginated.createCollector(sent);
     }

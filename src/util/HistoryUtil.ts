@@ -1,12 +1,13 @@
 import {DbTypes} from '../db/DbTypes';
-import ModActionDbObj = DbTypes.ModActionDbType;
-import DurationModActionDbObj = DbTypes.DurationActionDbType;
 import {DbManager} from '../db/DbManager';
-import {PaginatedEmbed} from './embeds/PaginatedEmbed';
-import {ModerationAction} from '../moderation/types/ModerationAction';
-import {DurationModerationAction} from '../moderation/types/DurationModerationAction';
+import {PaginatedEmbed} from './PaginatedEmbed';
+import {ModerationAction} from '../moderation/ModerationAction';
+import {DurationModerationAction} from '../moderation/DurationModerationAction';
+import {HistoryPaginatedEmbed} from '../history/HistoryPaginatedEmbed';
+import ModActionDbObj = DbTypes.ModActionDbType;
 import DurationActionDbType = DbTypes.DurationActionDbType;
-import {HistoryPaginatedEmbed} from './embeds/HistoryPaginatedEmbed';
+import DurationModActionDbObj = DbTypes.DurationActionDbType;
+import {exportedClasses} from "../Exports";
 
 export class HistoryUtil
 {
@@ -25,32 +26,29 @@ export class HistoryUtil
         const actions = await this.convertDocsToActions(docs);
 
         // Create a paginated embed
-        const paginated = await HistoryPaginatedEmbed.generate(actions, {
+        return await HistoryPaginatedEmbed.generate(actions, {
             guildId: guildId,
             userId: options.userId,
-            maxFields: 5,
+            maxFields: 6,
             embedOptions: {title: 'Moderation History'}
         });
-
-        return paginated;
     }
 
     /**
      * convert an array of db objects into an array of Moderation's and DurationModerationAction's
      * @param docs db docs to be deserialized
      */
-    private static async convertDocsToActions(docs: (ModActionDbObj | DurationModActionDbObj)[]): Promise<(ModerationAction | DurationModerationAction)[]>
+    private static async convertDocsToActions(docs: (ModActionDbObj | DurationModActionDbObj)[])
     {
         return await Promise.all(docs.map(doc =>
         {
-            if (doc.clazzName == 'ModActionDbType')
-            {
-                return ModerationAction.dbFactory(doc);
-            }
-            else if (doc.clazzName == 'DurationActionDbType')
-            {
-                return DurationModerationAction.dbFactory(doc as DurationActionDbType);
-            }
+            return this.docToAction(doc);
         }));
+    }
+
+    public static async docToAction(doc: ModActionDbObj | DurationModActionDbObj)
+    {
+        console.log((await exportedClasses[doc.type].dbFactory(doc)).constructor.name);
+        return await exportedClasses[doc.type].dbFactory(doc);
     }
 }

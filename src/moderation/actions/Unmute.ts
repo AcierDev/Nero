@@ -1,6 +1,8 @@
-import {ModerationAction} from "../types/ModerationAction";
-import {MessageEmbed} from "discord.js";
+import {ModerationAction} from "../ModerationAction";
+import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
+import {Unban} from "./Unban";
+import {Mute} from "./Mute";
 
 export class Unmute extends ModerationAction
 {
@@ -25,6 +27,19 @@ export class Unmute extends ModerationAction
             silent,
             {}
         );
+    }
+
+    // -------------------------------------------- //
+    // CONSTRUCT
+    // -------------------------------------------- //
+    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, options: { id?: string, type?: string }) {
+        super(target, reason, issuer, timestamp, guild, channel, silent, options);
+
+        // Set the required permission checks that need to be executed before this action runs
+        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkTargetIsInGuild: true, checkTargetMuted: true, checkIssuerHasPerm: "MUTE_MEMBERS"};
+
+        // Set the success message that will be shown to the command executor after the command runs successfully
+        this.successMsgFunc = () => `${this.target} unmuted`
     }
 
     // -------------------------------------------- //
@@ -61,5 +76,9 @@ export class Unmute extends ModerationAction
             // Indicate a failure
             return false;
         }
+    }
+
+    override genUndoAction(interaction: SelectMenuInteraction, reason: string, duration) {
+        return new Mute(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, duration, {})
     }
 }

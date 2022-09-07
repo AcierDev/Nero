@@ -56,15 +56,6 @@ export class WarnCommand extends Command
         const warning = await Warning.interactionFactory(interaction);
 
         // Attempt to execute the action in the guild
-        await ModActionExecutor.execute(
-            warning,
-            { checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
-            {checkTargetIsInGuild: true},
-            () =>
-            {
-                return `${warning.target} warned`
-            },
-            interaction
-        )
+        await ModActionExecutor.execute(warning, interaction)
     }
 }

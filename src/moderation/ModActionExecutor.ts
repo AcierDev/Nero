@@ -1,25 +1,21 @@
-import {ModerationAction} from "./types/ModerationAction";
-import {PermCheckOptions} from "../interfaces/PermCheckOptions";
+import {ModerationAction} from "./ModerationAction";
 import {CommandUtil} from "../util/CommandUtil";
 import {Command} from "@sapphire/framework";
-import {AdditionalCheckOptions} from "../interfaces/AdditionalCheckOptions";
-import {MessageEmbed} from "discord.js";
+import {MessageEmbed, SelectMenuInteraction} from "discord.js";
 
 export class ModActionExecutor
 {
-    public static async execute(action: ModerationAction, permChecks: PermCheckOptions, additionalChecks: AdditionalCheckOptions, successMsgFunc: () => string, interaction: Command.ChatInputInteraction)
+    public static async execute(action: ModerationAction, interaction: Command.ChatInputInteraction | SelectMenuInteraction)
     {
         // Perform all critical permission checks
-        const commandPermissionError = await CommandUtil.performChecks(action, {
-            permChecks: permChecks,
-            additionalChecks: additionalChecks
-        });
+        const commandError = await CommandUtil.commandChecks(action, action.executionChecks);
+
         // Handle a permission error, if any exists
-        if (commandPermissionError)
+        if (commandError)
         {
             // Send the user the error message
             await interaction.reply({
-                embeds: [commandPermissionError.toMessageEmbed()], ephemeral: action.silent
+                embeds: [commandError.toMessageEmbed()], ephemeral: action.silent
             });
             // Exit
             return;
@@ -41,7 +37,7 @@ export class ModActionExecutor
             await interaction.reply({
                 embeds: [
                     new MessageEmbed()
-                        .setDescription('<a:ezgif:1000822167631577249>' + ' ' + successMsgFunc())
+                        .setDescription('<a:ezgif:1000822167631577249>' + ' ' + action.successMsgFunc())
                         .setColor('#03FBAB')
                 ],
                 ephemeral: action.silent

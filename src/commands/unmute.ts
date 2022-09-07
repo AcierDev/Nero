@@ -57,21 +57,9 @@ export class UnmuteCommand extends Command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
         // Create an unmute instance from the interaction
-        const unmute = Unmute.interactionFactory(interaction);
-        // If for some reason this interaction cannot be turned into a proper unmute (for example command parameters that cannot be parsed into something meaningful)
-        // Then the factory will have already responded with an error message, and we should just exit
-        if (! unmute) return;
+        const unmute = await Unmute.interactionFactory(interaction);
 
         // Attempt to execute the action in the guild
-        await ModActionExecutor.execute(
-            unmute,
-            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
-            {checkTargetIsInGuild: true, checkTargetMuted: true},
-            () =>
-            {
-                return `${unmute.target} unmuted`
-            },
-            interaction
-        )
+        await ModActionExecutor.execute(unmute, interaction)
     }
 }

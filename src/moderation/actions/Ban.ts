@@ -1,11 +1,20 @@
 import {CommandError} from "../../errors/CommandError";
 import {DbManager} from "../../db/DbManager";
-import {DurationModerationAction} from "../types/DurationModerationAction";
+import {DurationModerationAction} from "../DurationModerationAction";
 import {Command} from "@sapphire/framework";
 import {TimeUtil} from "../../util/TimeUtil";
+import {CacheType, Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
+import humanize from 'humanize-duration';
+import {Unban} from "./Unban";
+import {ClientWrapper} from "../../ClientWrapper";
+import {DbTypes} from "../../db/DbTypes";
+import DurationActionDbType = DbTypes.DurationActionDbType;
+import {ModerationAction} from "../ModerationAction";
 
-export class Ban extends DurationModerationAction
-{
+export class Ban extends DurationModerationAction {
+    toMessageEmbed(): MessageEmbed {
+        throw new Error("Method not implemented.");
+    }
     // -------------------------------------------- //
     // STATIC FACTORY
     // --------------------------------------------//
@@ -26,7 +35,7 @@ export class Ban extends DurationModerationAction
         const duration = TimeUtil.generateDuration(durationString.split(" "));
 
         // if the user provided a duration, and the parse of that duration failed
-        if (duration && !duration)
+        if (durationString && !duration)
         {
             // Send error message
             await interaction.reply({
@@ -50,6 +59,43 @@ export class Ban extends DurationModerationAction
             duration,
             {}
         );
+    }
+
+    public static async dbFactory(document: DurationActionDbType): Promise<Ban>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new Ban(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                document.duration,
+                { id: document.id, type: document.type }
+            );
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e);
+            return null;
+        }
+    }
+
+    // -------------------------------------------- //
+    // CONSTRUCT
+    // -------------------------------------------- //
+    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, duration: number, options: { id?: string, type?: string }) {
+        super(target, reason, issuer, timestamp, guild, channel, silent, duration, options);
+
+        // Set the required permission checks that need to be executed before this action runs
+        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"};
+
+        // Set the success message that will be shown to the command executor after the command runs successfully
+        this.successMsgFunc = () => `${this.target} banned ${this.duration ? `for **${humanize(this.duration)}**` : ''}`
     }
 
     // -------------------------------------------- //
@@ -100,7 +146,7 @@ export class Ban extends DurationModerationAction
         if (!message)
             // Return an error
             return new CommandError({
-                message: "error sending message to user. Command execution was successful",
+                message: "Ban executed successfully, but there was an error informing the user.",
                 emoji: '<:errormessage:1000894890441453748>',
                 additionalEmbedData: {
                     color: '#FFCC00'
@@ -128,5 +174,9 @@ export class Ban extends DurationModerationAction
             // Indicate failure
             return false;
         }
+    }
+
+    override genUndoAction(interaction: SelectMenuInteraction, reason: string) {
+        return new Unban(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, {})
     }
 }

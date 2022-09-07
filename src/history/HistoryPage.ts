@@ -1,6 +1,6 @@
 import { MessageActionRow, MessageEmbed, MessageEmbedOptions, MessageSelectMenu } from 'discord.js';
-import { ModerationAction } from '../../moderation/types/ModerationAction';
-import { DurationModerationAction } from '../../moderation/types/DurationModerationAction';
+import { ModerationAction } from '../moderation/ModerationAction';
+import { DurationModerationAction } from '../moderation/DurationModerationAction';
 
 export class HistoryPage
 {
@@ -28,7 +28,7 @@ export class HistoryPage
     public addAction(action: ModerationAction | DurationModerationAction)
     {
         // Add the action to the embed
-        this.embed.addField(action.type, action.toString(), false);
+        this.embed.addField(action.type, action.toString(), true);
 
         // Add the actions id
         this.actions.push(action);
@@ -45,12 +45,12 @@ export class HistoryPage
                         this.actions.map(action => {
                             return {
                                 label: `${action.type} - ${action.id}`,
-                                description: `Remove/Undo this action`,
+                                description: `Remove this action from user's history`,
                                 value: action.id,
-
                             }
                         })
                     )
+                    .setMaxValues(1)
             )
     }
 

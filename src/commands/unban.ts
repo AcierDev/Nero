@@ -58,19 +58,8 @@ export class UnbanCommand extends Command
     {
         // Generate a Ban object from this the interaction
         const unban = await Unban.interactionFactory(interaction);
-        // If an object could not be created for whatever reason
-        if (!unban) return;
 
         // Attempt to execute the action in the guild
-        await ModActionExecutor.execute(
-            unban,
-            {checkIssuerHasPerm: "BAN_MEMBERS"},
-            {checkTargetBanned: true},
-            () =>
-            {
-                return `${unban.target} unbanned`
-            },
-            interaction
-        )
+        await ModActionExecutor.execute(unban, interaction)
     }
 }

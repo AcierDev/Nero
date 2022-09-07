@@ -65,20 +65,12 @@ export class MuteCommand extends Command
     {
         // Generate a Mute object from this the interaction
         const mute = await Mute.interactionFactory(interaction);
+
         // If for some reason this interaction cannot be turned into a proper mute (for example command parameters that cannot be parsed into something meaningful)
         // Then the factory will have already responded with an error message, and we should just exit
         if (! mute) return;
 
         // Attempt to execute the action in the guild
-        await ModActionExecutor.execute(
-            mute,
-            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "MUTE_MEMBERS"},
-            {checkTargetIsInGuild: true},
-            () =>
-            {
-                return `${mute.target} muted for **${humanize(mute._duration)}**`
-            },
-            interaction
-        )
+        await ModActionExecutor.execute(mute, interaction)
     }
 }

@@ -10,6 +10,7 @@ export class Deserializer
     {
         // Generate a blank object of the correct type
         let instance = new DbTypes[json._clazzName]();
+
         // For every property in the object
         for (const prop in json)
         {
@@ -21,7 +22,7 @@ export class Deserializer
             }
             // If the property itself is an object, let's deserialize it recursively
             if (json[prop] && typeof json[prop] === 'object')
-             {
+            {
                 instance[prop] = this.deserialize(json[prop]);
             }
             else

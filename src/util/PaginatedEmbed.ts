@@ -85,6 +85,19 @@ export class PaginatedEmbed
 
     public getMessage()
     {
+        if (this.pages.length == 0)
+            return {
+                embeds: [
+                    new MessageEmbed()
+                        .setColor('YELLOW')
+                        .setDescription('No moderation history found')
+                    //.setTimestamp()
+                ],
+                components: [],
+                fetchReply: true,
+            }
+
+        // If the user has a moderation history
         const row = new MessageActionRow()
             .addComponents(
                 new MessageButton()

@@ -1,8 +1,8 @@
-import {PaginatedEmbed} from './PaginatedEmbed';
+import {PaginatedEmbed} from '../util/PaginatedEmbed';
 import { MessageActionRow, MessageButton, MessageEmbed, MessageEmbedOptions } from 'discord.js';
-import {ClientWrapper} from '../../ClientWrapper';
-import {DurationModerationAction} from "../../moderation/types/DurationModerationAction";
-import {ModerationAction} from "../../moderation/types/ModerationAction";
+import {ClientWrapper} from '../ClientWrapper';
+import {DurationModerationAction} from "../moderation/DurationModerationAction";
+import {ModerationAction} from "../moderation/ModerationAction";
 import { HistoryPage } from './HistoryPage';
 
 export class HistoryPaginatedEmbed extends PaginatedEmbed
@@ -61,7 +61,7 @@ export class HistoryPaginatedEmbed extends PaginatedEmbed
     {
         for (let i = 0; i < this.historyPages.length; i++)
         {
-            this.historyPages[i].embed.setFooter(`page: ${i + 1}/${this.pages.length}`)
+            this.historyPages[i].embed.setFooter({text: `page: ${i + 1}/${this.historyPages.length}`})
         }
     }
 
@@ -82,6 +82,19 @@ export class HistoryPaginatedEmbed extends PaginatedEmbed
 
     public override getMessage()
     {
+        // If the user does not have a moderation history
+        if (this.historyPages.length == 0)
+            return {
+                embeds: [
+                    new MessageEmbed()
+                        .setColor('YELLOW')
+                        .setDescription('No moderation history found')
+                        //.setTimestamp()
+                ],
+                components: [],
+                fetchReply: true,
+            }
+
         const row = new MessageActionRow()
             .addComponents(
                 new MessageButton()
@@ -133,6 +146,9 @@ export class HistoryPaginatedEmbed extends PaginatedEmbed
             url: await this.getThumbnail({guildId: options.guildId, userId: options.userId})
         }
 
+        // intercept the embed options that were passed and prefix the embed title
+        options.embedOptions.title = await this.getTitlePrefix({guildId: options.guildId, userId: options.userId}) + options.embedOptions.title;
+
         // Generate a paginated embed
         const historyPaginated =  new HistoryPaginatedEmbed({maxFields: options.maxFields, embedOptions: options.embedOptions});
 
@@ -160,7 +176,20 @@ export class HistoryPaginatedEmbed extends PaginatedEmbed
         } else
         {
             // Fetch guild and return its iconURL
-            (await ClientWrapper.get().guilds.fetch(options.guildId)).iconURL()
+            return (await ClientWrapper.get().guilds.fetch(options.guildId)).iconURL()
+        }
+    }
+
+    // If a userId is provided, return their username, otherwise return the guild's name
+    private static async getTitlePrefix(options: {guildId: string, userId?: string})
+    {
+        if (options.userId)
+        {
+            // Fetch user and return their avatarURL
+            return (await ClientWrapper.get().users.fetch(options.userId)).username + `'s `;
+        } else
+        {
+            return "Server ";
         }
     }
 }

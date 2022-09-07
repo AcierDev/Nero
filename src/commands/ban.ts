@@ -71,15 +71,6 @@ export class BanCommand extends Command
         if (!ban) return;
 
         // Attempt to execute the action in the guild
-        await ModActionExecutor.execute(
-            ban,
-            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"},
-            {checkTargetNotBanned: true},
-            () =>
-            {
-                return `${ban.target} banned ${ban._duration ? `for **${humanize(ban._duration)}**` : ''}`
-            },
-            interaction
-        )
+        await ModActionExecutor.execute(ban, interaction)
     }
 }

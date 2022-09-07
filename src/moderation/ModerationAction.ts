@@ -1,62 +1,18 @@
-import { MessageEmbed, User, TextBasedChannel, Guild, Message } from 'discord.js';
-import { DbManager } from '../../db/DbManager';
-import { DbTypes } from '../../db/DbTypes';
-import { CommandError } from '../../errors/CommandError';
+import {MessageEmbed, User, TextBasedChannel, Guild, Message, SelectMenuInteraction} from 'discord.js';
+import { DbManager } from '../db/DbManager';
+import { DbTypes } from '../db/DbTypes';
+import { CommandError } from '../errors/CommandError';
 import { Command } from '@sapphire/framework';
 import ModActionDbType = DbTypes.ModActionDbType;
-import { ClientWrapper } from '../../ClientWrapper';
+import { ClientWrapper } from '../ClientWrapper';
 import DurationActionDbType = DbTypes.DurationActionDbType;
 import adler from 'adler-32';
-import { Warning } from '../actions/Warning';
+import {CommandCheckOptions} from "../interfaces/CommandCheckOptions";
+import {DurationModerationAction} from "./DurationModerationAction";
+import {ModActionExecutor} from "./ModActionExecutor";
 
-export class ModerationAction
+export abstract class ModerationAction
 {
-	// -------------------------------------------- //
-	// STATIC FACTORIES
-	// -------------------------------------------- //
-	public static async interactionFactory(interaction: Command.ChatInputInteraction): Promise<ModerationAction>
-	{
-		// get the command arguments
-		const target = interaction.options.getUser('user', true);
-		const reason = interaction.options.getString('reason', true);
-		const silent = interaction.options.getBoolean('silent', false) ?? false;
-
-		// Create and return a new object
-		return new ModerationAction(
-			target,
-			reason,
-			interaction.user,
-			Date.now(),
-			interaction.guild,
-			interaction.channel,
-			silent,
-			{}
-		);
-	}
-
-	public static async dbFactory(document: ModActionDbType): Promise<ModerationAction>
-	{
-		try
-		{
-			// Fetch fields and return a new object
-			return new ModerationAction(
-				await ClientWrapper.get().users.fetch(document.targetId),
-				document.reason,
-				await ClientWrapper.get().users.fetch(document.issuerId),
-				document.timestamp,
-				await ClientWrapper.get().guilds.fetch(document.guildId),
-				await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
-				document.silent,
-				{ id: document.id, type: document.type }
-			);
-		} catch (e)
-		{
-			// Stack trace
-			console.log(e);
-			return null;
-		}
-	}
-
 	// -------------------------------------------- //
 	// FIELDS
 	// -------------------------------------------- //
@@ -79,6 +35,12 @@ export class ModerationAction
 	private _silent: boolean;
 	// unique identifier of this action
 	private _id: string;
+	// Checks that need to be performed before this action is executed
+	private _executionChecks: CommandCheckOptions;
+	// Checks that need to be performed before this action is undone
+	private _undoChecks: CommandCheckOptions;
+	// function to generate this string that is displayed to the command executor when the action performs successfully
+	private _successMsgFunc: () => string;
 	//TODO comment field
 
 	// -------------------------------------------- //
@@ -195,6 +157,30 @@ export class ModerationAction
 		this._id = id;
 	}
 
+	get executionChecks(): CommandCheckOptions {
+		return this._executionChecks;
+	}
+
+	set executionChecks(value: CommandCheckOptions) {
+		this._executionChecks = value;
+	}
+
+	get undoChecks(): CommandCheckOptions {
+		return this._undoChecks;
+	}
+
+	set undoChecks(value: CommandCheckOptions) {
+		this._undoChecks = value;
+	}
+
+	get successMsgFunc(): () => string {
+		return this._successMsgFunc;
+	}
+
+	set successMsgFunc(value: () => string) {
+		this._successMsgFunc = value;
+	}
+
 	// -------------------------------------------- //
 	// METHODS
 	// -------------------------------------------- //
@@ -282,6 +268,11 @@ export class ModerationAction
 		return await DbManager.storeAction(this.toDbObj());
 	};
 
+	async undo(interaction: SelectMenuInteraction, reason: string)
+	{
+		return ModActionExecutor.execute(this.genUndoAction(interaction, reason), interaction);
+	}
+
 	/**
 	 * Generate a database object from this action
 	 */
@@ -312,16 +303,16 @@ export class ModerationAction
 	// -------------------------------------------- //
 	// ABSTRACT
 	// -------------------------------------------- //
+	abstract execute(): Promise<boolean>
 
-	async execute(): Promise<boolean>
-	{
-		// OVERRIDE ME
-		return false;
-	}
+	/**
+	 * Generate a corresponding moderation action to undo this one. Some data is the same in the original and undo action, for example the target.
+	 * Other data needs to be taken from the provided SelectMenuInteraction, for example the new issuer
+	 * @param interaction a SelectMenuInteraction providing the data of the user trying to issue the undo action
+	 * @param reason the reason for the undo must be passed as a string, since it cannot be obtained from the SelectMenuInteraction
+	 * @param duration optional parameter for when the undo action requires a duration, for example a ban or mute
+	 */
+	abstract genUndoAction(interaction: SelectMenuInteraction, reason: string, duration?: number): ModerationAction | DurationModerationAction | null
 
-	toMessageEmbed(): MessageEmbed
-	{
-		// OVERRIDE ME
-		return null;
-	}
+	abstract toMessageEmbed(): MessageEmbed
 }

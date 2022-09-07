@@ -31,6 +31,14 @@ export class DbManager
         return arr;
     }
 
+    public static async fetchLog(fetchOptions): Promise<ModActionDbObj | DurationModActionDbObj>
+    {
+        // Fetch an object matching the query from the db
+        const doc: NamedClass = await this.db.findOne(fetchOptions);
+
+        // Attempt to deserialize the object
+        return Deserializer.deserialize(doc);
+    }
 
     public static async deleteAction(fetchOptions)
     {

@@ -56,15 +56,6 @@ export class KickCommand extends Command
         const kick = await Kick.interactionFactory(interaction);
 
         // Attempt to execute the action in the guild
-        await ModActionExecutor.execute(
-            kick,
-            {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"},
-            {checkTargetIsInGuild: true},
-            () =>
-            {
-                return `${kick.target} kicked`
-            },
-            interaction
-        )
+        await ModActionExecutor.execute(kick, interaction)
     }
 }

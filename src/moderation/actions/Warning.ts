@@ -1,5 +1,5 @@
-import {ModerationAction} from "../types/ModerationAction";
-import {MessageEmbed} from "discord.js";
+import {ModerationAction} from "../ModerationAction";
+import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
 
 export class Warning extends ModerationAction
@@ -28,6 +28,19 @@ export class Warning extends ModerationAction
     }
 
     // -------------------------------------------- //
+    // CONSTRUCT
+    // -------------------------------------------- //
+    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, options: { id?: string, type?: string }) {
+        super(target, reason, issuer, timestamp, guild, channel, silent, options);
+
+        // Set the required permission checks that need to be executed before this action runs
+        this.executionChecks = { checkTargetIsBelowIssuer: true, checkIssuerHasPerm: "MUTE_MEMBERS", checkTargetIsInGuild: true};
+
+        // Set the success message that will be shown to the command executor after the command runs successfully
+        this.successMsgFunc = () => `${this.target} warned`
+    }
+
+    // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
     override toMessageEmbed(): MessageEmbed
@@ -46,5 +59,9 @@ export class Warning extends ModerationAction
     {
         // Warnings don't actually do anything, so just indicate success
         return true;
+    }
+
+    genUndoAction(interaction: SelectMenuInteraction, reason: string, duration?: number) {
+        return null;
     }
 }

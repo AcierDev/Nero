@@ -1,12 +1,10 @@
-import {ModerationAction} from "../types/ModerationAction";
-import {Guild, MessageEmbed, TextBasedChannel, User} from "discord.js";
+import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User,} from "discord.js";
 import humanize from 'humanize-duration';
-import {DurationBasedAction} from "../../interfaces/DurationBasedAction";
 import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
-import {DbTypes} from "../../db/DbTypes";
-import DurationModActionDbObj = DbTypes.DurationActionDbType;
-import {DurationModerationAction} from "../types/DurationModerationAction";
+import {DurationModerationAction} from "../DurationModerationAction";
+import {Unban} from "./Unban";
+import {Unmute} from "./Unmute";
 
 export class Mute extends DurationModerationAction
 {
@@ -57,6 +55,19 @@ export class Mute extends DurationModerationAction
     }
 
     // -------------------------------------------- //
+    // CONSTRUCT
+    // -------------------------------------------- //
+    constructor(target: User, reason: string, issuer: User, timestamp: number, guild: Guild, channel: TextBasedChannel, silent: boolean, duration: number, options: { id?: string, type?: string }) {
+        super(target, reason, issuer, timestamp, guild, channel, silent, duration, options);
+
+        // Set the required permission checks that need to be executed before this action runs
+        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkTargetIsInGuild: true, checkIssuerHasPerm: "MUTE_MEMBERS"};
+
+        // Set the success message that will be shown to the command executor after the command runs successfully
+        this.successMsgFunc = () => `${this.target} muted for **${humanize(this.duration)}**`
+    }
+
+    // -------------------------------------------- //
     // METHODS
     // -------------------------------------------- //
 
@@ -96,5 +107,9 @@ export class Mute extends DurationModerationAction
             // Indicate failure
             return false;
         }
+    }
+
+    override genUndoAction(interaction: SelectMenuInteraction, reason: string) {
+        return new Unmute(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, {})
     }
 }

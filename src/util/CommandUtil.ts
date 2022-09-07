@@ -1,28 +1,21 @@
-import {ModerationAction} from "../moderation/types/ModerationAction";
-import {PermCheckOptions} from "../interfaces/PermCheckOptions";
-import {AdditionalCheckOptions} from "../interfaces/AdditionalCheckOptions";
+import {ModerationAction} from "../moderation/ModerationAction";
+import {CommandCheckOptions} from "../interfaces/CommandCheckOptions";
 import {CommandError} from "../errors/CommandError";
+import {GuildMember, PermissionString} from "discord.js";
 
-export class CommandUtil
-{
-    static async performChecks(action: ModerationAction, options: { permChecks?: PermCheckOptions, additionalChecks?: AdditionalCheckOptions }): Promise<null | CommandError>
-    {
-        return await this.checkPermissions(action, options.permChecks) || await this.performAdditionalChecks(action, options.additionalChecks);
-    }
-
+export class CommandUtil {
     /**
      * perform necessary and fundamental permission checks
      * @param action the moderation action that is going to be performed
      * @param options object containing which checks you want to be performed
      */
-    public static async checkPermissions(action: ModerationAction, options: PermCheckOptions): Promise<null | CommandError>
+    public static async commandChecks(action: ModerationAction, options: CommandCheckOptions): Promise<null | CommandError>
     {
         if (!options)
             return null;
 
         // If we should perform a check to ensure the issuing user has a certain permission node
-        if (options.checkIssuerHasPerm)
-        {
+        if (options.checkIssuerHasPerm) {
             // Fetch all the members in the guild
             const members = await action.guild.members.fetch();
             // Find the issuing member
@@ -39,8 +32,7 @@ export class CommandUtil
         }
 
         // If we should perform a check to see if the targeted user has higher command than the client
-        if (options.checkTargetIsBelowClient)
-        {
+        if (options.checkTargetIsBelowClient) {
             // Look up the client in the guild
             const me = action.guild.me;
             // Look up the target in the guild
@@ -51,17 +43,16 @@ export class CommandUtil
             // Check if the target has higher command than the client
             if (targetMember.roles.highest.position >= me.roles.highest.position)
                 return new CommandError({
-                        message: `${action.target}'s roles are higher or equal to mine. I cannot perform that command on them`,
-                        emoji: '<:warning1:1000894892249194656>',
-                        additionalEmbedData: {
-                            color: '#FFCC00'
-                        }
-                    });
+                    message: `${action.target}'s roles are higher or equal to mine. I cannot perform that command on them`,
+                    emoji: '<:warning1:1000894892249194656>',
+                    additionalEmbedData: {
+                        color: '#FFCC00'
+                    }
+                });
         }
 
         // If we should perform a check to see if the target's command are higher than the issuer's command
-        if (options.checkTargetIsBelowIssuer)
-        {
+        if (options.checkTargetIsBelowIssuer) {
             // Fetch all the members in the guild
             const members = await action.guild.members.fetch();
             // Look up the issuer in the guild
@@ -81,21 +72,9 @@ export class CommandUtil
                     }
                 })
         }
-    }
-
-    /**
-     * perform necessary and fundamental checks to ensure successful command execution
-     * @param action the moderation action that is going to be performed
-     * @param options object containing which checks to be performed
-     */
-    public static async performAdditionalChecks(action: ModerationAction, options: AdditionalCheckOptions): Promise<null | CommandError>
-    {
-        if (!options)
-            return null;
 
         // If we should perform a check to ensure the targeted user is in this guild
-        if (options.checkTargetIsInGuild)
-        {
+        if (options.checkTargetIsInGuild) {
             // Fetch all the members in the guild
             const members = await action.guild.members.fetch();
             // Check that there exists a GuildMember whose id matches the target's id.
@@ -112,8 +91,7 @@ export class CommandUtil
         }
 
         // If we should perform a check to ensure the targeted user is muted
-        if (options.checkTargetMuted)
-        {
+        if (options.checkTargetMuted) {
             const targetMember = (await action.guild.members.fetch()).find(member => member.id === action.target.id);
             // If the target was not found then there is no issue with the target not being muted
             if (!targetMember)
@@ -129,8 +107,7 @@ export class CommandUtil
         }
 
         // If we should perform a check to ensure the targeted user is not muted
-        if (options.checkTargetNotMuted)
-        {
+        if (options.checkTargetNotMuted) {
             const targetMember = (await action.guild.members.fetch()).find(member => member.id === action.target.id);
             // If the target was not found then there is no issue with the target being muted
             if (!targetMember)
@@ -146,8 +123,7 @@ export class CommandUtil
         }
 
         // If we should perform a check to ensure the targeted user is banned from this guild
-        if (options.checkTargetBanned)
-        {
+        if (options.checkTargetBanned) {
             // Fetch all the guild's bans
             const bans = await action.guild.bans.fetch();
             // Check if this user is banned
@@ -162,8 +138,7 @@ export class CommandUtil
         }
 
         // If we should perform a check to ensure the targeted user is not banned from this guild
-        if (options.checkTargetNotBanned)
-        {
+        if (options.checkTargetNotBanned) {
             // Fetch all the guild's bans
             const bans = await action.guild.bans.fetch();
             // Check if this user is banned
