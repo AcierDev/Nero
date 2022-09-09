@@ -52,6 +52,8 @@ export class KickCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+        await interaction.deferReply()
+
         // Create a Kick object from this interaction
         const kick = await Kick.interactionFactory(interaction);
 

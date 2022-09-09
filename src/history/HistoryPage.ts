@@ -28,7 +28,7 @@ export class HistoryPage
     public addAction(action: ModerationAction | DurationModerationAction)
     {
         // Add the action to the embed
-        this.embed.addField(action.type, action.toString(), true);
+        this.embed.addField(action.type, action.toString(), false);
 
         // Add the actions id
         this.actions.push(action);

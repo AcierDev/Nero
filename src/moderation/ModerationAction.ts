@@ -1,4 +1,12 @@
-import {MessageEmbed, User, TextBasedChannel, Guild, Message, SelectMenuInteraction} from 'discord.js';
+import {
+	MessageEmbed,
+	User,
+	TextBasedChannel,
+	Guild,
+	Message,
+	SelectMenuInteraction,
+	MessageComponentInteraction, ModalSubmitInteraction
+} from 'discord.js';
 import { DbManager } from '../db/DbManager';
 import { DbTypes } from '../db/DbTypes';
 import { CommandError } from '../errors/CommandError';
@@ -268,9 +276,21 @@ export abstract class ModerationAction
 		return await DbManager.storeAction(this.toDbObj());
 	};
 
-	async undo(interaction: SelectMenuInteraction, reason: string)
-	{
-		return ModActionExecutor.execute(this.genUndoAction(interaction, reason), interaction);
+	async undo(interaction: ModalSubmitInteraction, reason: string) {
+		// Generate a moderation action that undoes this moderation action
+		const undoAction = this.genUndoAction(interaction, reason);
+
+		// Check if there is no such action. For example, a Warning and Kick cannot be undone and so a null value will be returned
+		if (!undoAction)
+		{
+			await interaction.reply({
+				embeds: [
+					new MessageEmbed()
+						.setColor("YELLOW")
+						.setDescription('<:cancel1:1001219492573089872> This action cannot be undone')
+				]
+			})
+		}
 	}
 
 	/**
@@ -303,6 +323,10 @@ export abstract class ModerationAction
 	// -------------------------------------------- //
 	// ABSTRACT
 	// -------------------------------------------- //
+
+	/**
+	 * Perform moderation actions in the guild
+	 */
 	abstract execute(): Promise<boolean>
 
 	/**
@@ -312,7 +336,10 @@ export abstract class ModerationAction
 	 * @param reason the reason for the undo must be passed as a string, since it cannot be obtained from the SelectMenuInteraction
 	 * @param duration optional parameter for when the undo action requires a duration, for example a ban or mute
 	 */
-	abstract genUndoAction(interaction: SelectMenuInteraction, reason: string, duration?: number): ModerationAction | DurationModerationAction | null
+	abstract genUndoAction(interaction: ModalSubmitInteraction, reason: string, duration?: number): null |  ModerationAction | DurationModerationAction
 
+	/**
+	 * Generate a discord embed providing the details of this moderation action
+	 */
 	abstract toMessageEmbed(): MessageEmbed
 }

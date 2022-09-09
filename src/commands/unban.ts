@@ -56,6 +56,9 @@ export class UnbanCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+
+        await interaction.deferReply()
+
         // Generate a Ban object from this the interaction
         const unban = await Unban.interactionFactory(interaction);
 

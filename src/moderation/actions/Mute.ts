@@ -1,10 +1,13 @@
-import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User,} from "discord.js";
+import {Guild, MessageEmbed, ModalSubmitInteraction, SelectMenuInteraction, TextBasedChannel, User,} from "discord.js";
 import humanize from 'humanize-duration';
 import {TimeUtil} from "../../util/TimeUtil";
 import {Command} from "@sapphire/framework";
 import {DurationModerationAction} from "../DurationModerationAction";
 import {Unban} from "./Unban";
 import {Unmute} from "./Unmute";
+import {ClientWrapper} from "../../ClientWrapper";
+import {DbTypes} from "../../db/DbTypes";
+import DurationActionDbType = DbTypes.DurationActionDbType;
 
 export class Mute extends DurationModerationAction
 {
@@ -54,6 +57,30 @@ export class Mute extends DurationModerationAction
         );
     }
 
+    public static async dbFactory(document: DurationActionDbType): Promise<Mute>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new Mute(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                document.duration,
+                { id: document.id, type: document.type }
+            );
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e);
+            return null;
+        }
+    }
+
     // -------------------------------------------- //
     // CONSTRUCT
     // -------------------------------------------- //
@@ -81,7 +108,7 @@ export class Mute extends DurationModerationAction
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL())
             .setDescription(`${this.target} you have been **muted** from **${this.guild.name}** for **${humanize(this._duration)}**`)
-            .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
+            .addFields({name: `Reason`, value: `\`\`\`${this.reason}\`\`\``})
             .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
     }
 
@@ -109,7 +136,7 @@ export class Mute extends DurationModerationAction
         }
     }
 
-    override genUndoAction(interaction: SelectMenuInteraction, reason: string) {
+    override genUndoAction(interaction: ModalSubmitInteraction, reason: string) {
         return new Unmute(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, {})
     }
 }

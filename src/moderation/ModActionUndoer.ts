@@ -1,4 +1,11 @@
-import {MessageActionRow, Modal, SelectMenuInteraction, TextInputComponent, TextInputStyleResolvable} from "discord.js";
+import {
+    MessageActionRow,
+    MessageComponentInteraction,
+    Modal, ModalSubmitInteraction,
+    SelectMenuInteraction,
+    TextInputComponent,
+    TextInputStyleResolvable
+} from "discord.js";
 import {DbManager} from "../db/DbManager";
 import {CommandError} from "../errors/CommandError";
 import {HistoryUtil} from "../util/HistoryUtil";
@@ -41,19 +48,23 @@ export class ModActionUndoer
         const filter = (modalInteraction) => modalInteraction.customId === 'reasonModal' && modalInteraction.user.id == selectMenuInteraction.user.id;
 
         await selectMenuInteraction.awaitModalSubmit({filter, time: 60_000})
-            .then(modal => {
+            .then(async modal => {
 
+                await modal.deferReply()
+
+                // Get the reason that the user entered
                 const reason = modal.fields.getTextInputValue('reason')
 
                 // Get the moderation action id that was selected
                 const id = selectMenuInteraction.values[0];
 
-                this.undoActionId(id, selectMenuInteraction, reason)
+                // Pass data off to method that will look up and undo the action that was selected
+                await this.undoActionId(id, modal as any, reason)
 
             }).catch(err => console.error(err))
     }
 
-    private static async undoActionId(id: string, interaction: SelectMenuInteraction, reason: string): Promise<true | CommandError>
+    private static async undoActionId(id: string, interaction: ModalSubmitInteraction, reason: string): Promise<true | CommandError>
     {
         // Fetch the action with the provided id from the db
         const dbObj = await DbManager.fetchLog({_id: id});
@@ -71,6 +82,7 @@ export class ModActionUndoer
         // Convert the doc to an action
         const action = await HistoryUtil.docToAction(dbObj);
 
+        // Begin execution of an undoing action
         await action.undo(interaction, reason);
     }
 }

@@ -1,8 +1,12 @@
 import {ModerationAction} from "../ModerationAction";
-import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
+import {Guild, MessageEmbed, ModalSubmitInteraction, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
 import {Unban} from "./Unban";
 import {Mute} from "./Mute";
+import {ClientWrapper} from "../../ClientWrapper";
+import {DbTypes} from "../../db/DbTypes";
+import ModActionDbType = DbTypes.ModActionDbType;
+import {DurationModerationAction} from "../DurationModerationAction";
 
 export class Unmute extends ModerationAction
 {
@@ -29,6 +33,29 @@ export class Unmute extends ModerationAction
         );
     }
 
+    public static async dbFactory(document: ModActionDbType): Promise<Unmute>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new Unmute(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                { id: document.id, type: document.type }
+            );
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e);
+            return null;
+        }
+    }
+
     // -------------------------------------------- //
     // CONSTRUCT
     // -------------------------------------------- //
@@ -52,7 +79,7 @@ export class Unmute extends ModerationAction
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL())
             .setDescription(`${this.target} you have been **unmuted** from **${this.guild.name}**`)
-            .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
+            .addFields({name: `Reason`, value: `\`\`\`${this.reason}\`\`\``})
             .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
     }
 
@@ -78,7 +105,7 @@ export class Unmute extends ModerationAction
         }
     }
 
-    override genUndoAction(interaction: SelectMenuInteraction, reason: string, duration) {
+    override genUndoAction(interaction: ModalSubmitInteraction, reason: string, duration: number) {
         return new Mute(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, duration, {})
     }
 }

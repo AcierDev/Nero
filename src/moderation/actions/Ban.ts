@@ -3,7 +3,15 @@ import {DbManager} from "../../db/DbManager";
 import {DurationModerationAction} from "../DurationModerationAction";
 import {Command} from "@sapphire/framework";
 import {TimeUtil} from "../../util/TimeUtil";
-import {CacheType, Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
+import {
+    CacheType,
+    Guild,
+    MessageEmbed,
+    ModalSubmitInteraction,
+    SelectMenuInteraction,
+    TextBasedChannel,
+    User
+} from "discord.js";
 import humanize from 'humanize-duration';
 import {Unban} from "./Unban";
 import {ClientWrapper} from "../../ClientWrapper";
@@ -12,9 +20,6 @@ import DurationActionDbType = DbTypes.DurationActionDbType;
 import {ModerationAction} from "../ModerationAction";
 
 export class Ban extends DurationModerationAction {
-    toMessageEmbed(): MessageEmbed {
-        throw new Error("Method not implemented.");
-    }
     // -------------------------------------------- //
     // STATIC FACTORY
     // --------------------------------------------//
@@ -157,9 +162,6 @@ export class Ban extends DurationModerationAction {
         return null;
     }
 
-    /**
-     * Perform moderation actions in the guild
-     */
     public async execute(): Promise<boolean>
     {
         try
@@ -176,7 +178,18 @@ export class Ban extends DurationModerationAction {
         }
     }
 
-    override genUndoAction(interaction: SelectMenuInteraction, reason: string) {
+    override toMessageEmbed(): MessageEmbed
+    {
+        return new MessageEmbed()
+            .setTitle('You were kicked')
+            .setColor('#FF3131')
+            .setThumbnail(this.guild.iconURL())
+            .setDescription(`${this.target} you have been **Kicked** from **${this.guild.name}**`)
+            .addFields({name: `Reason`, value: `\`\`\`${this.reason}\`\`\``})
+            .setFooter({ text: `${this.guild.name}`, iconURL: this.guild.iconURL() })
+    }
+
+    override genUndoAction(interaction: ModalSubmitInteraction, reason: string) {
         return new Unban(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, {})
     }
 }

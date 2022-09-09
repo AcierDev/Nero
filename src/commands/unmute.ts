@@ -56,6 +56,9 @@ export class UnmuteCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+
+        await interaction.deferReply()
+
         // Create an unmute instance from the interaction
         const unmute = await Unmute.interactionFactory(interaction);
 

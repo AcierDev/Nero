@@ -1,9 +1,12 @@
-import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
+import {Guild, MessageEmbed, ModalSubmitInteraction, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {CommandError} from "../../errors/CommandError";
 import {DbManager} from "../../db/DbManager";
 import {Command} from "@sapphire/framework";
 import {ModerationAction} from "../ModerationAction";
 import {Unban} from "./Unban";
+import {ClientWrapper} from "../../ClientWrapper";
+import {DbTypes} from "../../db/DbTypes";
+import ModActionDbType = DbTypes.ModActionDbType;
 
 export class Kick extends ModerationAction
 {
@@ -28,6 +31,29 @@ export class Kick extends ModerationAction
             silent,
             {}
         );
+    }
+
+    public static async dbFactory(document: ModActionDbType): Promise<Kick>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new Kick(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                { id: document.id, type: document.type }
+            );
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e);
+            return null;
+        }
     }
 
     // -------------------------------------------- //
@@ -111,7 +137,7 @@ export class Kick extends ModerationAction
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL())
             .setDescription(`${this.target} you have been **Kicked** from **${this.guild.name}**`)
-            .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
+            .addFields({name: `Reason`, value: `\`\`\`${this.reason}\`\`\``})
             .setFooter({ text: `${this.guild.name}`, iconURL: this.guild.iconURL() })
     }
 
@@ -139,7 +165,7 @@ export class Kick extends ModerationAction
         }
     }
 
-    override genUndoAction(interaction: SelectMenuInteraction, reason: string) {
+    override genUndoAction(interaction: ModalSubmitInteraction, reason: string) {
         return null;
     }
 }

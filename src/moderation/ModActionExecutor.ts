@@ -1,11 +1,11 @@
 import {ModerationAction} from "./ModerationAction";
 import {CommandUtil} from "../util/CommandUtil";
+import {MessageEmbed, ModalSubmitInteraction} from "discord.js";
 import {Command} from "@sapphire/framework";
-import {MessageEmbed, SelectMenuInteraction} from "discord.js";
 
 export class ModActionExecutor
 {
-    public static async execute(action: ModerationAction, interaction: Command.ChatInputInteraction | SelectMenuInteraction)
+    public static async execute(action: ModerationAction, interaction: Command.ChatInputInteraction | ModalSubmitInteraction)
     {
         // Perform all critical permission checks
         const commandError = await CommandUtil.commandChecks(action, action.executionChecks);
@@ -14,7 +14,7 @@ export class ModActionExecutor
         if (commandError)
         {
             // Send the user the error message
-            await interaction.reply({
+            await interaction.followUp({
                 embeds: [commandError.toMessageEmbed()], ephemeral: action.silent
             });
             // Exit
@@ -27,14 +27,14 @@ export class ModActionExecutor
         if (commandExecutionError)
         {
             // Respond to user with nice error embed
-            await interaction.reply({
+            await interaction.followUp({
                 embeds: [commandExecutionError.toMessageEmbed()],
                 ephemeral: action.silent
             })
         } else
         {
             // Respond to user with nice success embed
-            await interaction.reply({
+            await interaction.followUp({
                 embeds: [
                     new MessageEmbed()
                         .setDescription('<a:ezgif:1000822167631577249>' + ' ' + action.successMsgFunc())

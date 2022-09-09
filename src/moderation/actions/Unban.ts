@@ -1,9 +1,12 @@
 import {ModerationAction} from "../ModerationAction";
-import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
+import {Guild, MessageEmbed, ModalSubmitInteraction, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {CommandError} from "../../errors/CommandError";
 import {DbManager} from "../../db/DbManager";
 import {Command} from "@sapphire/framework";
 import {Ban} from "./Ban";
+import {ClientWrapper} from "../../ClientWrapper";
+import {DbTypes} from "../../db/DbTypes";
+import ModActionDbType = DbTypes.ModActionDbType;
 
 export class Unban extends ModerationAction
 {
@@ -28,6 +31,29 @@ export class Unban extends ModerationAction
             silent,
             {}
         );
+    }
+
+    public static async dbFactory(document: ModActionDbType): Promise<Unban>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new Unban(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                { id: document.id, type: document.type }
+            );
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e);
+            return null;
+        }
     }
 
     // -------------------------------------------- //
@@ -106,7 +132,7 @@ export class Unban extends ModerationAction
         }
     }
 
-    override genUndoAction(interaction: SelectMenuInteraction, reason: string, duration) {
+    override genUndoAction(interaction: ModalSubmitInteraction, reason: string, duration) {
         return new Ban(this.target, reason, interaction.user, Date.now(), this.guild, interaction.channel, interaction.ephemeral, duration, {})
     }
 

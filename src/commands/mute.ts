@@ -63,6 +63,8 @@ export class MuteCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+        await interaction.deferReply()
+
         // Generate a Mute object from this the interaction
         const mute = await Mute.interactionFactory(interaction);
 

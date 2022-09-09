@@ -1,6 +1,10 @@
 import {ModerationAction} from "../ModerationAction";
-import {Guild, MessageEmbed, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
+import {Guild, MessageEmbed, ModalSubmitInteraction, SelectMenuInteraction, TextBasedChannel, User} from "discord.js";
 import {Command} from "@sapphire/framework";
+import {ClientWrapper} from "../../ClientWrapper";
+import {DbTypes} from "../../db/DbTypes";
+import ModActionDbType = DbTypes.ModActionDbType;
+import {DurationModerationAction} from "../DurationModerationAction";
 
 export class Warning extends ModerationAction
 {
@@ -27,6 +31,29 @@ export class Warning extends ModerationAction
         );
     }
 
+    public static async dbFactory(document: ModActionDbType): Promise<Warning>
+    {
+        try
+        {
+            // Fetch fields and return a new object
+            return new Warning(
+                await ClientWrapper.get().users.fetch(document.targetId),
+                document.reason,
+                await ClientWrapper.get().users.fetch(document.issuerId),
+                document.timestamp,
+                await ClientWrapper.get().guilds.fetch(document.guildId),
+                await ClientWrapper.get().channels.fetch(document.channelId) as TextBasedChannel,
+                document.silent,
+                { id: document.id, type: document.type }
+            );
+        } catch (e)
+        {
+            // Stack trace
+            console.log(e);
+            return null;
+        }
+    }
+
     // -------------------------------------------- //
     // CONSTRUCT
     // -------------------------------------------- //
@@ -50,7 +77,7 @@ export class Warning extends ModerationAction
             .setColor('#FF3131')
             .setThumbnail(this.guild.iconURL({format: 'png'}))
             .setDescription(`${this.target} you have received a **warning** from **${this.guild.name}**`)
-            .addField(`Reason`, `\`\`\`${this.reason}\`\`\``)
+            .addFields({name: `Reason`, value: `\`\`\`${this.reason}\`\`\``})
             .setFooter({text: `${this.guild.name}`, iconURL: this.guild.iconURL()})
         //TODO include guild invite link
     }
@@ -61,7 +88,7 @@ export class Warning extends ModerationAction
         return true;
     }
 
-    genUndoAction(interaction: SelectMenuInteraction, reason: string, duration?: number) {
+    override genUndoAction(interaction: ModalSubmitInteraction, reason: string, duration?: number): ModerationAction | DurationModerationAction {
         return null;
     }
 }

@@ -52,6 +52,9 @@ export class WarnCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
+
+        await interaction.deferReply()
+
         // Create a Warning instance from this interaction
         const warning = await Warning.interactionFactory(interaction);
 
