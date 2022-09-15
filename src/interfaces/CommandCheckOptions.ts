@@ -1,13 +1,14 @@
-import {PermissionString} from "discord.js";
+import {PermissionString, RoleResolvable} from "discord.js";
 
 export interface CommandCheckOptions
 {
-    checkTargetIsBelowClient?: boolean,
-    checkTargetIsBelowIssuer?: boolean,
-    checkIssuerHasPerm?: PermissionString,
-    checkTargetIsInGuild?: boolean,
-    checkTargetMuted?: boolean,
-    checkTargetNotMuted?: boolean,
-    checkTargetBanned?: boolean,
-    checkTargetNotBanned?: boolean,
+    checkIssuerHasPerm?: PermissionString;
+    checkIssuerHasRole: string;
+    checkTargetIsBelowClient?: boolean;
+    checkTargetIsBelowIssuer?: boolean;
+    checkTargetIsInGuild?: boolean;
+    checkTargetMuted?: boolean;
+    checkTargetNotMuted?: boolean;
+    checkTargetBanned?: boolean;
+    checkTargetNotBanned?: boolean;
 }

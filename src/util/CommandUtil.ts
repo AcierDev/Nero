@@ -151,5 +151,35 @@ export class CommandUtil {
                     }
                 })
         }
+
+        // If we should perform a check that the issuer has a certain permission
+        if (options.checkIssuerHasRole)
+        {
+            // Fetch all the guild's members
+            const allMembers = await action.guild.members.fetch();
+            // Find the member in the list
+            const member = allMembers.find(member => member.id === action.issuer.id);
+            // Fetch all the guild's roles
+            const allRoles = await action.guild.roles.fetch();
+            // Find the required role
+            const role = allRoles.find(role => role.id == options.checkIssuerHasRole)
+            // If the role does not exist
+            if (!role)
+            {
+                return new CommandError({
+                    message: `You are required to have a role with id ${options.checkIssuerHasRole}, which doesn't exist. Access to this command has been denied out of caution`,
+                    emoji: '<:warning1:1000894892249194656>',
+                    additionalEmbedData: {
+                        color: '#FFCC00'
+                    }
+                })
+            }
+
+            // Check that the member has the required role
+            if (!member.roles.cache.has(options.checkIssuerHasRole))
+            {
+
+            }
+        }
     }
 }
