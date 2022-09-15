@@ -53,13 +53,13 @@ export class HistoryCommand extends Command
 
         // Fetch the command parameters
         const user = interaction.options.getUser('user', false) ?? null;
-        const boolean = interaction.options.getBoolean('silent', false) ?? false;
+        const silent = interaction.options.getBoolean('silent', false) ?? false;
 
         // Fetch a paginated embed of the user's moderation history, or the guild's moderation history if no user was provided
         const paginated = await HistoryUtil.fetchHistoryEmbed(interaction.guild.id, {userId: user?.id})
 
         // Send the paginated message
-        const sent = await interaction.followUp(paginated.getMessage()) as any
+        const sent = await interaction.followUp(paginated.getMessage(silent)) as any
 
         paginated.createCollector(sent);
     }

@@ -83,7 +83,7 @@ export class PaginatedEmbed
         }
     }
 
-    public getMessage()
+    public getMessage(ephemeral: boolean)
     {
         if (this.pages.length == 0)
             return {
@@ -95,6 +95,7 @@ export class PaginatedEmbed
                 ],
                 components: [],
                 fetchReply: true,
+                ephemeral: ephemeral,
             }
 
         // If the user has a moderation history
@@ -131,11 +132,11 @@ export class PaginatedEmbed
             if (btnInteraction.customId == 'next_button')
             {
                 ++this.currPage;
-                await btnInteraction.editReply(this.getMessage())
+                await btnInteraction.editReply(this.getMessage(btnInteraction.ephemeral))
             } else if (btnInteraction.customId == 'prev_button')
             {
                 --this.currPage;
-                await btnInteraction.editReply(this.getMessage());
+                await btnInteraction.editReply(this.getMessage(btnInteraction.ephemeral));
             }
         })
 

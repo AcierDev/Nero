@@ -11,13 +11,16 @@ export class HistoryUtil
     public static async fetchHistoryEmbed(guildId: string, options: { userId?: string }): Promise<PaginatedEmbed>
     {
         // Fetch the logs for the user if a user was provided, if not fetch the entire guild's logs
-        const docs: (ModActionDbObj | DurationActionDbType)[] =
+        let docs: (ModActionDbObj | DurationActionDbType)[] =
             // Check if a user id was provided
             (options.userId)
                 // If a user id was provided fetch the user's logs in the guild
                 ? await DbManager.fetchLogs({_guildId: guildId, _targetId: options.userId})
                 // Else fetch the entire guild's logs
-                : await DbManager.fetchLogs({_guildId: guildId});
+                : await DbManager.fetchLogs({_guildId: guildId})
+
+        // Sort the docs
+        docs = docs.sort((a,b) => b.timestamp - a.timestamp);
 
         // Convert all the db documents into moderation action objects
         const actions = await this.convertDocsToActions(docs);
@@ -26,7 +29,7 @@ export class HistoryUtil
         return await HistoryPaginatedEmbed.generate(actions, {
             guildId: guildId,
             userId: options.userId,
-            maxFields: 6,
+            maxFields: 4,
             embedOptions: {title: 'Moderation History'}
         });
     }
@@ -45,7 +48,6 @@ export class HistoryUtil
 
     public static async docToAction(doc: ModActionDbObj | DurationActionDbType)
     {
-        console.log((await exportedClasses[doc.type].dbFactory(doc)).constructor.name);
         return await exportedClasses[doc.type].dbFactory(doc);
     }
 }

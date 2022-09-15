@@ -69,9 +69,9 @@ export abstract class DurationModerationAction extends ModerationAction implemen
 	{
 		return `User: ${this.target}`
 			+`\n Moderator: ${this.issuer}`
-			+ `\n Reason: ${this.reason}`
-			+ `\n Duration: ${humanize(this.duration)}`
+			+ `\n Reason: **${this.reason}**`
+			+ `\n Duration: **${this.duration == null ? 'indefinite' : humanize(this.duration)}**`
 			+ `\n Date: <t:${Math.trunc(this.timestamp / 1000)}:F>`
-			+ `\n Id: ${this.id}`;
+			+ `\n Id: **${this.id}**`;
 	}
 }

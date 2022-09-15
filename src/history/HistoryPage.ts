@@ -28,7 +28,7 @@ export class HistoryPage
     public addAction(action: ModerationAction | DurationModerationAction)
     {
         // Add the action to the embed
-        this.embed.addField(action.type, action.toString(), false);
+        this.embed.addFields({name: action.type, value: action.toString(), inline: false});
 
         // Add the actions id
         this.actions.push(action);
@@ -40,7 +40,7 @@ export class HistoryPage
             .addComponents(
                 new MessageSelectMenu()
                     .setCustomId('remove_menu')
-                    .setPlaceholder('Remove an action')
+                    .setPlaceholder('Undo an action')
                     .setOptions(
                         this.actions.map(action => {
                             return {

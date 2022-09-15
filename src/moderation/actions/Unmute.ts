@@ -67,6 +67,11 @@ export class Unmute extends ModerationAction
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} unmuted`
+
+        // Set this action as having an undo action
+        this.hasUndo = true;
+        // Set the at the undo action (Mute) does not require a duration to be entered
+        this.undoRequiresDuration = true;
     }
 
     // -------------------------------------------- //

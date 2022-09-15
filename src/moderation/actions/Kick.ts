@@ -67,6 +67,11 @@ export class Kick extends ModerationAction
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} kicked`
+
+        // Set this action as not having an undo action
+        this.hasUndo = false;
+        // Set the at the undo action (Nothing) does not require a duration to be entered
+        this.undoRequiresDuration = false;
     }
 
     // -------------------------------------------- //
