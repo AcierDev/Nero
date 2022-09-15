@@ -101,6 +101,11 @@ export class Ban extends DurationModerationAction {
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} banned ${this.duration ? `for **${humanize(this.duration)}**` : ''}`
+
+        // Set this action as having an undo action
+        this.hasUndo = true;
+        // Set the at the undo action (Unban) does not require a duration to be entered
+        this.undoRequiresDuration = false;
     }
 
     // -------------------------------------------- //

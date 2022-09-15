@@ -45,8 +45,10 @@ export abstract class ModerationAction
 	private _id: string;
 	// Checks that need to be performed before this action is executed
 	private _executionChecks: CommandCheckOptions;
-	// Checks that need to be performed before this action is undone
-	private _undoChecks: CommandCheckOptions;
+	// Whether this action has a corresponding undo action
+	private _hasUndo: boolean;
+	// Boolean indicating if the undo of this action needs a duration. Example: The reverse of an umute is a Mute which requires a duration
+	private _undoRequiresDuration: boolean;
 	// function to generate this string that is displayed to the command executor when the action performs successfully
 	private _successMsgFunc: () => string;
 	//TODO comment field
@@ -173,20 +175,28 @@ export abstract class ModerationAction
 		this._executionChecks = value;
 	}
 
-	get undoChecks(): CommandCheckOptions {
-		return this._undoChecks;
-	}
-
-	set undoChecks(value: CommandCheckOptions) {
-		this._undoChecks = value;
-	}
-
 	get successMsgFunc(): () => string {
 		return this._successMsgFunc;
 	}
 
 	set successMsgFunc(value: () => string) {
 		this._successMsgFunc = value;
+	}
+
+	get hasUndo(): boolean {
+		return this._hasUndo;
+	}
+
+	set hasUndo(value: boolean) {
+		this._hasUndo = value;
+	}
+
+	get undoRequiresDuration(): boolean {
+		return this._undoRequiresDuration;
+	}
+
+	set undoRequiresDuration(value: boolean) {
+		this._undoRequiresDuration = value;
 	}
 
 	// -------------------------------------------- //
@@ -276,23 +286,6 @@ export abstract class ModerationAction
 		return await DbManager.storeAction(this.toDbObj());
 	};
 
-	async undo(interaction: ModalSubmitInteraction, reason: string) {
-		// Generate a moderation action that undoes this moderation action
-		const undoAction = this.genUndoAction(interaction, reason);
-
-		// Check if there is no such action. For example, a Warning and Kick cannot be undone and so a null value will be returned
-		if (!undoAction)
-		{
-			await interaction.reply({
-				embeds: [
-					new MessageEmbed()
-						.setColor("YELLOW")
-						.setDescription('<:cancel1:1001219492573089872> This action cannot be undone')
-				]
-			})
-		}
-	}
-
 	/**
 	 * Generate a database object from this action
 	 */
@@ -315,9 +308,9 @@ export abstract class ModerationAction
 	{
 		return `User: ${this.target}`
 			+ `\n Moderator: ${this.issuer}`
-			+ `\n Reason: ${this.reason}`
+			+ `\n Reason: **${this.reason}**`
 			+ `\n Date: <t:${Math.trunc(this.timestamp / 1000)}:F>`
-			+ `\n Id: ${this.id}`;
+			+ `\n Id: **${this.id}**`;
 	}
 
 	// -------------------------------------------- //

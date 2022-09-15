@@ -92,6 +92,11 @@ export class Mute extends DurationModerationAction
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} muted for **${humanize(this.duration)}**`
+
+        // Set this action as having an undo action
+        this.hasUndo = true;
+        // Set the at the undo action (Unmute) does not require a duration to be entered
+        this.undoRequiresDuration = false;
     }
 
     // -------------------------------------------- //

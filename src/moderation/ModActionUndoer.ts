@@ -1,15 +1,15 @@
 import {
-    MessageActionRow,
-    MessageComponentInteraction,
-    Modal, ModalSubmitInteraction,
+    MessageEmbed,
+    ModalSubmitInteraction,
     SelectMenuInteraction,
-    TextInputComponent,
-    TextInputStyleResolvable
 } from "discord.js";
 import {DbManager} from "../db/DbManager";
 import {CommandError} from "../errors/CommandError";
 import {HistoryUtil} from "../util/HistoryUtil";
-import {TextInputStyle} from "discord-api-types/v9";
+import {ModalGenerator} from "../util/ModalGenerator";
+import {ModActionExecutor} from "./ModActionExecutor";
+import {InteractionUtil} from "../util/InteractionUtil";
+import {TimeUtil} from "../util/TimeUtil";
 
 export class ModActionUndoer
 {
@@ -18,7 +18,6 @@ export class ModActionUndoer
 
         // Ensure the select menu is a history undo menu
         if (selectMenuInteraction.customId !== 'remove_menu') return;
-
         // If more than one option was selected from the removal menu
         if (selectMenuInteraction.values.length !== 1)
         {
@@ -26,49 +25,11 @@ export class ModActionUndoer
             return;
         }
 
-        // Create a nice modal for the user to enter the reason for them undoing this moderation action
-        const modal = new Modal()
-            .setCustomId('reasonModal')
-            .setTitle('Provide a reason')
-            .addComponents(
-                new MessageActionRow<TextInputComponent>()
-                    .addComponents(
-                        new TextInputComponent()
-                            .setCustomId('reason')
-                            .setLabel('enter a reason for this moderation action')
-                            .setStyle(TextInputStyle.Paragraph as unknown as TextInputStyleResolvable)
-                            .setRequired(true)
-                    )
-            )
+        // Get the moderation action id that was selected
+        const id = selectMenuInteraction.values[0];
 
-        // Show the user the modal
-        await selectMenuInteraction.showModal(modal);
-
-        // Create a filter for modal interactions
-        const filter = (modalInteraction) => modalInteraction.customId === 'reasonModal' && modalInteraction.user.id == selectMenuInteraction.user.id;
-
-        await selectMenuInteraction.awaitModalSubmit({filter, time: 60_000})
-            .then(async modal => {
-
-                await modal.deferReply()
-
-                // Get the reason that the user entered
-                const reason = modal.fields.getTextInputValue('reason')
-
-                // Get the moderation action id that was selected
-                const id = selectMenuInteraction.values[0];
-
-                // Pass data off to method that will look up and undo the action that was selected
-                await this.undoActionId(id, modal as any, reason)
-
-            }).catch(err => console.error(err))
-    }
-
-    private static async undoActionId(id: string, interaction: ModalSubmitInteraction, reason: string): Promise<true | CommandError>
-    {
         // Fetch the action with the provided id from the db
         const dbObj = await DbManager.fetchLog({_id: id});
-
         // If the action is not found
         if (! dbObj)
             return new CommandError({
@@ -79,10 +40,55 @@ export class ModActionUndoer
                 }
             })
 
-        // Convert the doc to an action
+        // Convert the object that was retrieved from the database into a moderation action
         const action = await HistoryUtil.docToAction(dbObj);
+        // Check if there is no such undo action. For example, a Warning and Kick cannot be undone and so a null value will be returned
+        if (!action.hasUndo)
+        {
+            // Reply with error
+            await selectMenuInteraction.reply({
+                embeds: [
+                    new MessageEmbed()
+                        .setColor("YELLOW")
+                        .setDescription('<:cancel1:1001219492573089872> This action cannot be undone')
+                ],
+                ephemeral: selectMenuInteraction.ephemeral
+            })
+            // Exit
+            return;
+        }
 
-        // Begin execution of an undoing action
-        await action.undo(interaction, reason);
+        // Create a nice modal for the user to enter the reason for them undoing this moderation action
+        const modal = ModalGenerator.genReasonModal(action);
+        // Show the user the modal
+        await selectMenuInteraction.showModal(modal);
+        // Create a filter for modal interactions
+        const filter = (modalInteraction) => modalInteraction.customId === 'reasonModal' && modalInteraction.user.id == selectMenuInteraction.user.id;
+        // Await the modal's submission
+        await selectMenuInteraction.awaitModalSubmit({filter, time: 60_000})
+            .then(async modal =>
+            {
+                // Make sure that we only process the first modal we receive. We don't want to process 3 modal's at once
+                if (! InteractionUtil.isUnique(modal.id)) return;
+
+                // Defer because things might take a while
+                await modal.deferReply()
+                // Get the reason that the user entered
+                const reason = modal.fields.getTextInputValue('reason')
+
+                // Declare a blank duration variable equal to null, if no duration is entered by the user, this will remain null.
+                // If the user enters a duration it will be parsed and assigned to this variable
+                let duration;
+                // If the undo requires a duration, get it from the modal
+                let durationString = action.undoRequiresDuration ? modal.fields.getTextInputValue('duration') : null;
+                if (durationString)
+                    duration = TimeUtil.generateDuration(durationString.split(" "));
+
+                // Generate a moderation action that undoes this moderation action
+                const undoAction = action.genUndoAction(modal, reason, duration);
+
+                return await ModActionExecutor.execute(undoAction, modal)
+
+            }).catch(err => console.error(err))
     }
 }

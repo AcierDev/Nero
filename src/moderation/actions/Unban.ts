@@ -67,6 +67,11 @@ export class Unban extends ModerationAction
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} unbanned`
+
+        // Set this action as having an undo action
+        this.hasUndo = true;
+        // Set the at the undo action (Ban) does not require a duration to be entered
+        this.undoRequiresDuration = true;
     }
 
     // -------------------------------------------- //
