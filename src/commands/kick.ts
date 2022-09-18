@@ -52,7 +52,7 @@ export class KickCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
-        await interaction.deferReply()
+        await interaction.deferReply({ephemeral: interaction.options.getBoolean('silent')})
 
         // Create a Kick object from this interaction
         const kick = await Kick.interactionFactory(interaction);

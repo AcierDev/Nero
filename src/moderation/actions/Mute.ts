@@ -8,6 +8,7 @@ import {Unmute} from "./Unmute";
 import {ClientWrapper} from "../../ClientWrapper";
 import {DbTypes} from "../../db/DbTypes";
 import DurationActionDbType = DbTypes.DurationActionDbType;
+import config from '../../config.json'
 
 export class Mute extends DurationModerationAction
 {
@@ -88,7 +89,7 @@ export class Mute extends DurationModerationAction
         super(target, reason, issuer, timestamp, guild, channel, silent, duration, options);
 
         // Set the required permission checks that need to be executed before this action runs
-        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkTargetIsInGuild: true, checkIssuerHasPerm: "MUTE_MEMBERS"};
+        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkTargetIsInGuild: true, checkIssuerHasRole: config.commands.kick.guilds[this.guild.id]};
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} muted for **${humanize(this.duration)}**`

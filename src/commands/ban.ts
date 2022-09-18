@@ -63,7 +63,7 @@ export class BanCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
-        await interaction.deferReply()
+        await interaction.deferReply({ephemeral: interaction.options.getBoolean('silent')})
 
         // Generate a Ban object from this the interaction
         const ban = await Ban.interactionFactory(interaction);
