@@ -57,7 +57,7 @@ export class UnbanCommand extends Command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
 
-        await interaction.deferReply()
+        await interaction.deferReply({ephemeral: interaction.options.getBoolean('silent')})
 
         // Generate a Ban object from this the interaction
         const unban = await Unban.interactionFactory(interaction);

@@ -3,7 +3,7 @@ import {DbManager} from '../db/DbManager';
 import {PaginatedEmbed} from './PaginatedEmbed';
 import {HistoryPaginatedEmbed} from '../history/HistoryPaginatedEmbed';
 import ModActionDbObj = DbTypes.ModActionDbType;
-import {exportedClasses} from "../Exports";
+import {exportedClasses} from "../exports";
 import DurationActionDbType = DbTypes.DurationActionDbType;
 
 export class HistoryUtil

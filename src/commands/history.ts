@@ -49,7 +49,7 @@ export class HistoryCommand extends Command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
         // Defer reply
-        await interaction.deferReply();
+        await interaction.deferReply({ephemeral: interaction.options.getBoolean('silent')});
 
         // Fetch the command parameters
         const user = interaction.options.getUser('user', false) ?? null;

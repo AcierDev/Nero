@@ -37,9 +37,6 @@ export class PingCommand extends Command
     // Run via slash command
     public async chatInputRun(interaction: Command.ChatInputInteraction)
     {
-        await interaction.deferReply()
-
-
         // Initial reply
         const sentMsg = await interaction.reply({content: 'pong', ephemeral: true, fetchReply: true});
 

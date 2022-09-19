@@ -18,6 +18,7 @@ import {ClientWrapper} from "../../ClientWrapper";
 import {DbTypes} from "../../db/DbTypes";
 import DurationActionDbType = DbTypes.DurationActionDbType;
 import {ModerationAction} from "../ModerationAction";
+import config from '../../config.json'
 
 export class Ban extends DurationModerationAction {
     // -------------------------------------------- //
@@ -97,7 +98,7 @@ export class Ban extends DurationModerationAction {
         super(target, reason, issuer, timestamp, guild, channel, silent, duration, options);
 
         // Set the required permission checks that need to be executed before this action runs
-        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasPerm: "BAN_MEMBERS"};
+        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkIssuerHasRole: config.commands.ban.guilds[this.guild.id]};
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} banned ${this.duration ? `for **${humanize(this.duration)}**` : ''}`

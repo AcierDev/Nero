@@ -7,6 +7,8 @@ import {Unban} from "./Unban";
 import {ClientWrapper} from "../../ClientWrapper";
 import {DbTypes} from "../../db/DbTypes";
 import ModActionDbType = DbTypes.ModActionDbType;
+import config from '../../config.json'
+
 
 export class Kick extends ModerationAction
 {
@@ -63,7 +65,7 @@ export class Kick extends ModerationAction
         super(target, reason, issuer, timestamp, guild, channel, silent, options);
 
         // Set the required permission checks that need to be executed before this action runs
-        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkTargetIsInGuild: true, checkIssuerHasPerm: "KICK_MEMBERS"}
+        this.executionChecks = {checkTargetIsBelowIssuer: true, checkTargetIsBelowClient: true, checkTargetIsInGuild: true, checkIssuerHasRole: config.commands.kick.guilds[this.guild.id]}
 
         // Set the success message that will be shown to the command executor after the command runs successfully
         this.successMsgFunc = () => `${this.target} kicked`
